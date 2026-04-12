@@ -1,18 +1,9 @@
 # quit
 
-Double-press-to-quit extension for pi coding agent.
+Double-press Ctrl+C to quit pi when idle.
 
-Double-press `Ctrl+C` (or your clear keybinding) on empty editor + idle state to quit.
+- First press clears the editor and shows hint: "Ctrl+C again to quit"
+- Second press within 500ms calls `shutdown()`
+- Only active when the agent is idle and the editor is empty
 
-## Behavior
-
-- Editor empty + idle → first press shows "Ctrl+C again to quit"
-- Second press within 500ms → quits pi
-- Any other key → clears hint, normal behavior
-- Editor not empty → clears editor first
-
-## Install
-
-```bash
-pi install git:github.com/alvaro17f/pi
-```
+No commands — replaces the editor with a `QuitAwareEditor` on session start.

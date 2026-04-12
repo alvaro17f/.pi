@@ -1,21 +1,14 @@
 # custom-footer
 
-Custom footer extension for Pi coding agent.
+Custom TUI footer with expanded stats:
 
-Based on oh-pi's custom-footer but simplified: no cost display, adds TPS.
+- **Model/provider** — current model and provider
+- **Tokens** — input/output token counts
+- **Context %** — context window usage
+- **Session elapsed** — time since session start
+- **CWD** — short working directory path
+- **Git branch** — current branch name
+- **TPS** — tokens per second (tracked per agent turn)
+- **Last query** — time of most recent agent query
 
-## Features
-
-- Model name with thinking-level indicator + provider
-- Input/output token counts + context usage percentage
-- Session elapsed time
-- Current working directory
-- Git branch
-- TPS (tokens per second) of last query
-- Last query duration
-
-## Install
-
-```bash
-pi install git:github.com/alvaro17f/pi
-```
+No commands — activates automatically on session start.

@@ -1,33 +1,35 @@
 # caveman
 
-Caveman mode extension + skill for Pi coding agent.
+Token-saving output compression. Reduces agent response tokens ~75% by speaking like a caveman while keeping full technical accuracy.
 
-Cuts ~75% of output tokens while keeping full technical accuracy.
+Inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman).
 
-## Modes
+## Commands
 
-| Level | Description |
-|-------|-------------|
-| `lite` | Drop filler, keep grammar |
-| `full` | Drop articles, fragments ok |
-| `ultra` | Maximum compression, telegraphic |
+| Command | Description |
+|---------|-------------|
+| `/caveman` | Toggle on/off (defaults to full) |
+| `/caveman lite` | Drop filler, keep grammar |
+| `/caveman full` | Drop articles, fragments ok |
+| `/caveman ultra` | Maximum compression, telegraphic |
+| `/caveman off` | Disable |
+| `/caveman status` | Show current level + settings.json value |
 
-## Usage
+## Natural language triggers
 
-```
-/caveman        # Toggle on/off (defaults to full)
-/caveman lite   # Lite mode
-/caveman full    # Default caveman
-/caveman ultra   # Ultra compression
-/caveman off     # Disable
-```
+These phrases in chat also toggle caveman:
 
-Auto-triggers on: "caveman mode", "talk like caveman", "less tokens", "be brief".
+- "caveman mode", "talk like caveman", "use caveman", "less tokens", "be brief", "fewer tokens" → activate
+- "stop caveman", "normal mode" → deactivate
 
-## Install
+## Levels
 
-Add to your `settings.json` packages or install via:
+| Level | Example |
+|-------|---------|
+| **Lite** | "Your component re-renders because you create a new object reference each render. Wrap it in useMemo." |
+| **Full** | "New object ref each render. Inline object prop = new ref = re-render. Wrap in useMemo." |
+| **Ultra** | "Inline obj prop → new ref → re-render. useMemo." |
 
-```bash
-pi install git:github.com/alvaro17f/pi
-```
+## Persistence
+
+Level is persisted as `caveman` in `settings.json` and restored on startup.

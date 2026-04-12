@@ -1,0 +1,9 @@
+# Ignore everything
+*
+
+# Allow agent/ folder
+!agent/
+
+# Allow project README
+!README.md
+

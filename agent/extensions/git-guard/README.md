@@ -1,17 +1,11 @@
 # git-guard
 
-Git safety features for pi coding agent.
+Git safety net for pi sessions.
 
 ## Features
 
-- **Dirty repo warning** — notifies at session start if there are uncommitted changes
-- **Turn checkpoints** — creates a git stash snapshot before each agent turn
-- **Terminal notification** — sends desktop/terminal notification when agent finishes
+- **Dirty repo warning** — on session start, warns if there are uncommitted changes
+- **Per-turn stash checkpoints** — creates a `git stash create` checkpoint before each agent turn, so you can roll back if the agent makes unwanted changes
+- **Desktop notifications** — sends terminal notification (OSC 99 for Kitty, OSC 777 for others) when the agent finishes a turn
 
-Supports Kitty (OSC 99) and generic terminal (OSC 777) notification protocols.
-
-## Install
-
-```bash
-pi install git:github.com/alvaro17f/pi
-```
+No commands — activates automatically on session start.
