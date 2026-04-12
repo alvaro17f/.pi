@@ -18,7 +18,6 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { getAgentDir } from "@mariozechner/pi-coding-agent";
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 
 export const DANGEROUS_PATTERNS = [
   /\brm\s+(-[a-zA-Z]*f[a-zA-Z]*\s+|.*-rf\b|.*--force\b)/,
@@ -32,7 +31,7 @@ export const DANGEROUS_PATTERNS = [
 
 export const PROTECTED_PATHS = [".env", ".git/", "node_modules/", ".pi/", "id_rsa", ".ssh/"];
 
-const settingsPath = join(getAgentDir(), "settings.json");
+const settingsPath = getAgentDir() + "/settings.json";
 
 function loadSettings(): Record<string, unknown> {
   try {

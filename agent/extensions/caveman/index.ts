@@ -17,7 +17,6 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { getAgentDir } from "@mariozechner/pi-coding-agent";
 import { readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
 
 type CavemanLevel = "off" | "lite" | "full" | "ultra";
 
@@ -30,7 +29,7 @@ export const INSTRUCTIONS: Record<CavemanLevel, string> = {
   ultra: `Caveman Ultra Mode: Maximum compression. Telegraphic. Drop almost everything. Technical terms exact. Example: "Inline obj prop → new ref → re-render. useMemo."`,
 };
 
-const settingsPath = join(getAgentDir(), "settings.json");
+const settingsPath = getAgentDir() + "/settings.json";
 
 function loadSettings(): Record<string, unknown> {
   try {
@@ -105,13 +104,12 @@ export default function (pi: ExtensionAPI) {
     description: "Toggle caveman mode - speak like caveman, fewer tokens",
     getArgumentCompletions: (prefix) => {
       const options = [
-        { value: "lite", label: "Drop filler, keep grammar" },
-        { value: "full", label: "Drop articles, fragments ok" },
-        { value: "ultra", label: "Maximum compression, telegraphic" },
-        { value: "off", label: "Disable caveman mode" },
+        { value: "lite", label: "lite" },
+        { value: "full", label: "full" },
+        { value: "ultra", label: "ultra" },
+        { value: "off", label: "off" },
       ];
-      const p = (prefix ?? "").trim().toLowerCase();
-      return options.filter((o) => o.value.startsWith(p));
+      return options.filter((o) => o.value.startsWith(prefix));
     },
     handler: async (args, ctx) => {
       const levelArg = args?.trim().toLowerCase() || "";
