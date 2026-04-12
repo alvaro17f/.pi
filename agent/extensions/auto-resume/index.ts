@@ -1,9 +1,10 @@
 /**
- * Session resume prompt.
+ * Auto-resume — shows the built-in session selector on startup
+ * when the cwd has existing sessions. Selecting a session opens it
+ * directly, with full /resume UI (Tab, filter, Ctrl+D, Ctrl+R).
  *
- * On startup, if the cwd has existing sessions, shows the built-in
- * session selector (same UI as /resume). Selecting a session opens
- * it directly.
+ * switchSession is only available in command handlers, so a small
+ * internal command auto-triggers the switch after selection.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
@@ -13,10 +14,6 @@ let prompted = false;
 let pendingSwitch: string | null = null;
 
 export default function (pi: ExtensionAPI) {
-	// switchSession is only available in ExtensionCommandContext,
-	// not in ExtensionContext (event handlers). A command is the
-	// only way to access it. We auto-trigger it so the user never
-	// interacts with it directly.
 	pi.registerCommand("resume-selected", {
 		description: "Resume previously selected session",
 		handler: async (_args, ctx) => {
@@ -28,16 +25,19 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("session_start", async (event, ctx) => {
-		if (event.reason !== "startup") return;
-		if (prompted) return;
+		// Only prompt on fresh startup, not on /new, /resume, /fork
+		if (event.reason !== "startup" && event.reason !== "reload") return;
 		if (!ctx.hasUI) return;
+
+		// On reload, allow the prompt again
+		if (event.reason === "reload") prompted = false;
+		if (prompted) return;
 
 		prompted = true;
 
 		const sessions = await SessionManager.list(ctx.cwd);
 		if (sessions.length === 0) return;
 
-		// Show the built-in /resume selector immediately
 		const result = await ctx.ui.custom<string | null>((tui, theme, keybindings, done) => {
 			const selector = new SessionSelectorComponent(
 				(onProgress) => SessionManager.list(ctx.cwd, undefined, onProgress),
@@ -50,7 +50,8 @@ export default function (pi: ExtensionAPI) {
 					renameSession: async (sessionFilePath, nextName) => {
 						const next = (nextName ?? "").trim();
 						if (!next) return;
-						SessionManager.open(sessionFilePath).appendSessionInfo(next);
+						const sm = SessionManager.open(sessionFilePath);
+						sm.appendSessionInfo(next);
 					},
 					showRenameHint: true,
 					keybindings,
@@ -65,12 +66,26 @@ export default function (pi: ExtensionAPI) {
 		pendingSwitch = result;
 		ctx.ui.setEditorText("/resume-selected");
 
-		// Auto-submit: inject Enter keystroke into the terminal
-		// via onTerminalInput + cursor position report.
+		// Auto-submit via terminal input injection.
+		// Intercept the next input and replace it with Enter.
+		let submitted = false;
 		const unsub = ctx.ui.onTerminalInput(() => {
+			submitted = true;
 			unsub();
 			return { data: "\r" };
 		});
+
+		// Send cursor position report to elicit a terminal response.
+		// If the terminal doesn't respond, the next real keypress
+		// will trigger the submit instead (fallback).
 		setTimeout(() => process.stdout.write("\x1b[6n"), 100);
+
+		// Clean up if auto-submit hasn't happened after 3s —
+		// the user can still press Enter manually.
+		setTimeout(() => {
+			if (!submitted) {
+				unsub();
+			}
+		}, 3000);
 	});
 }
