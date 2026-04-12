@@ -12,7 +12,7 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 | [git-guard](agent/extensions/git-guard/) | Git safety — dirty repo warning, per-turn stash checkpoints, desktop notifications | — |
 | [quit](agent/extensions/quit/) | Double-press Ctrl+C to quit when idle | — |
 | [safe-guard](agent/extensions/safe-guard/) | Blocks/confirms dangerous bash commands and writes to sensitive paths | `/safe [on\|off\|status]` |
-| [suppress-ollama-logs](agent/extensions/suppress-ollama-logs/) | Suppresses pi-ollama startup log noise for 10 seconds | — |
+| [suppress-ollama-logs](agent/extensions/suppress-ollama-logs/) | Permanently filters `[pi-ollama]`-prefixed console output | — |
 
 ## Skills
 
