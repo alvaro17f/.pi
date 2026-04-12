@@ -1,46 +1,32 @@
 /**
- * Suppress pi-ollama startup log messages.
+ * Suppress pi-ollama log messages.
  *
  * The @0xkobold/pi-ollama extension uses console.log/error/debug directly,
- * which pi captures and displays. This extension filters those messages
- * by monkey-patching console methods before the ollama extension loads.
+ * which pi captures and displays. This extension permanently filters messages
+ * prefixed with "[pi-ollama]" by wrapping console methods once.
  *
- * Only messages prefixed with "[pi-ollama]" are suppressed during startup.
- * After a short delay, the original console methods are restored.
+ * Uses a stable wrapper pattern — each method is wrapped once and the wrapper
+ * is never replaced. Other extensions can safely patch console methods on top
+ * without this filter being clobbered.
  */
 
 const PREFIX = "[pi-ollama]";
-const SUPPRESS_MS = 10_000; // Restore after 10s to avoid permanent patching
 
-function patchAndRestore() {
-  const originals = {
-    log: console.log,
-    debug: console.debug,
-    warn: console.warn,
-    error: console.error,
-  };
+function isOllamaLog(args: unknown[]): boolean {
+	const first = args[0];
+	return typeof first === "string" && first.startsWith(PREFIX);
+}
 
-  function suppress(fn: (...args: unknown[]) => void) {
-    return (...args: unknown[]) => {
-      const first = args[0];
-      if (typeof first === "string" && first.startsWith(PREFIX)) return;
-      return fn(...args);
-    };
-  }
-
-  console.log = suppress(originals.log);
-  console.debug = suppress(originals.debug);
-  console.warn = suppress(originals.warn);
-  console.error = suppress(originals.error);
-
-  setTimeout(() => {
-    console.log = originals.log;
-    console.debug = originals.debug;
-    console.warn = originals.warn;
-    console.error = originals.error;
-  }, SUPPRESS_MS);
+function wrapConsole(): void {
+	for (const method of ["log", "debug", "warn", "error"] as const) {
+		const original = console[method];
+		console[method] = function (...args: unknown[]) {
+			if (isOllamaLog(args)) return;
+			return original.apply(this, args);
+		};
+	}
 }
 
 export default function suppressOllamaLogs() {
-  patchAndRestore();
+	wrapConsole();
 }
