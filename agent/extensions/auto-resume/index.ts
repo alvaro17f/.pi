@@ -25,12 +25,10 @@ export default function (pi: ExtensionAPI) {
 	});
 
 	pi.on("session_start", async (event, ctx) => {
-		// Only prompt on fresh startup, not on /new, /resume, /fork
-		if (event.reason !== "startup" && event.reason !== "reload") return;
+		// Only on fresh startup
+		if (event.reason !== "startup") return;
 		if (!ctx.hasUI) return;
 
-		// On reload, allow the prompt again
-		if (event.reason === "reload") prompted = false;
 		if (prompted) return;
 
 		prompted = true;
