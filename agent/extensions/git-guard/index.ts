@@ -15,6 +15,7 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
  * Kitty terminals use OSC 99, others use OSC 777 (supported by iTerm2, foot, etc.).
  */
 export function terminalNotify(title: string, body: string): void {
+  if (!process.stdout.isTTY) return;
   if (process.env.KITTY_WINDOW_ID) {
     process.stdout.write(`\x1b]99;i=1:d=0;${title}\x1b\\`);
     process.stdout.write(`\x1b]99;i=1:p=body;${body}\x1b\\`);
@@ -60,6 +61,7 @@ export default function (pi: ExtensionAPI) {
 
   // Notify when agent is done
   pi.on("agent_end", () => {
+    if (!process.stdout.isTTY) return;
     terminalNotify("pi", formatTurnMessage(turnCount));
     turnCount = 0;
   });

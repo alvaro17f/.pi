@@ -34,7 +34,7 @@ export function accumulateUsage(totals: UsageTotals, message: AssistantMessage):
 export type { UsageTotals };
 
 function collectTotals(ctx: Pick<ExtensionContext, "sessionManager">): UsageTotals {
-  const totals: UsageTotals = { input: 0, output: 0, cost: 0 };
+  const totals: UsageTotals = { input: 0, output: 0 };
   for (const entry of ctx.sessionManager.getBranch()) {
     if (entry.type === "message" && entry.message.role === "assistant") {
       accumulateUsage(totals, entry.message as AssistantMessage);
@@ -72,6 +72,8 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_start", async (_event, ctx) => {
     sessionStart = Date.now();
+    lastTps = 0;
+    lastQueryTime = 0;
     usageTotals = collectTotals(ctx);
     cachedCtx = ctx;
 
@@ -135,7 +137,7 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_switch", (event, ctx) => {
     usageTotals = collectTotals(ctx);
-    if (event.reason === "new") sessionStart = Date.now();
+    if (event.reason === "new") { sessionStart = Date.now(); lastTps = 0; lastQueryTime = 0; }
   });
 
   pi.on("session_tree", (_event, ctx) => { usageTotals = collectTotals(ctx); });

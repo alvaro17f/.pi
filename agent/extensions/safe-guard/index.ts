@@ -100,7 +100,7 @@ export default function (pi: ExtensionAPI) {
 
     if (event.toolName === "write" || event.toolName === "edit") {
       const filePath = (event.input as { path?: string }).path ?? "";
-      const hit = PROTECTED_PATHS.find((p) => filePath.includes(p));
+      const hit = PROTECTED_PATHS.find((p) => p.endsWith("/") ? filePath.includes("/" + p) || filePath.startsWith(p) : filePath.endsWith("/" + p) || filePath.startsWith(p));
       if (hit) {
         if (ctx.hasUI) {
           const ok = await ctx.ui.confirm("Protected Path", `Allow write to ${filePath}?`);
