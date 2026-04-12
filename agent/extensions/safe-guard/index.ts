@@ -7,13 +7,19 @@
  * 2. Path guard — blocks writes to sensitive paths (.env, .git/, .ssh/, etc.)
  *    with user confirmation in interactive mode, or outright blocking in headless mode
  *
- * /safe — toggle safe-guard on/off (persisted in settings.json)
+ * /safe        — toggle on/off
+ * /safe on     — enable
+ * /safe off    — disable
+ * /safe status — show current state
+ *
+ * State persisted in settings.json as safeGuard.
  */
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getSettingsPath } from "@mariozechner/pi-coding-agent";
-import { readFileSync, writeFileSync } from "node:fs";
 
-/** Regex patterns that match potentially destructive bash commands. */
+import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { getAgentDir } from "@mariozechner/pi-coding-agent";
+import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
 export const DANGEROUS_PATTERNS = [
   /\brm\s+(-[a-zA-Z]*f[a-zA-Z]*\s+|.*-rf\b|.*--force\b)/,
   /\bsudo\s+rm\b/,
@@ -24,35 +30,54 @@ export const DANGEROUS_PATTERNS = [
   />\s*\/dev\/sd[a-z]/,
 ];
 
-/** File paths that should never be written to without explicit confirmation. */
 export const PROTECTED_PATHS = [".env", ".git/", "node_modules/", ".pi/", "id_rsa", ".ssh/"];
+
+const settingsPath = join(getAgentDir(), "settings.json");
 
 function loadSettings(): Record<string, unknown> {
   try {
-    return JSON.parse(readFileSync(getSettingsPath(), "utf-8"));
+    return JSON.parse(readFileSync(settingsPath, "utf-8"));
   } catch {
     return {};
   }
 }
 
 function saveSettings(settings: Record<string, unknown>): void {
-  writeFileSync(getSettingsPath(), JSON.stringify(settings, null, 2) + "\n");
+  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
 }
 
 let enabled = true;
 
-/**
- * Extension entry point.
- */
 export default function (pi: ExtensionAPI) {
-  // Restore persisted state
   const settings = loadSettings();
   enabled = (settings.safeGuard as boolean) ?? true;
 
   pi.registerCommand("safe", {
     description: "Toggle safe-guard on/off",
-    handler: async (_args, ctx) => {
-      enabled = !enabled;
+    getArgumentCompletions: (prefix) => {
+      const options = [
+        { value: "on", label: "Enable safe-guard" },
+        { value: "off", label: "Disable safe-guard" },
+        { value: "status", label: "Show current state" },
+      ];
+      return options.filter((o) => o.value.startsWith(prefix));
+    },
+    handler: async (args, ctx) => {
+      const arg = args?.trim().toLowerCase() || "";
+
+      if (arg === "on") {
+        enabled = true;
+      } else if (arg === "off") {
+        enabled = false;
+      } else if (arg === "status") {
+        const current = loadSettings();
+        const persisted = current.safeGuard as boolean | undefined;
+        ctx.ui.showMessage(`safe-guard: ${enabled ? "enabled" : "disabled"} (settings.json: ${persisted ?? "unset"})`);
+        return;
+      } else {
+        enabled = !enabled;
+      }
+
       const updated = loadSettings();
       updated.safeGuard = enabled;
       saveSettings(updated);
@@ -63,7 +88,6 @@ export default function (pi: ExtensionAPI) {
   pi.on("tool_call", async (event, ctx) => {
     if (!enabled) return;
 
-    // Check bash commands for dangerous patterns
     if (event.toolName === "bash") {
       const cmd = (event.input as { command?: string }).command ?? "";
       const match = DANGEROUS_PATTERNS.find((p) => p.test(cmd));
@@ -75,7 +99,6 @@ export default function (pi: ExtensionAPI) {
       }
     }
 
-    // Check write/edit for protected paths
     if (event.toolName === "write" || event.toolName === "edit") {
       const filePath = (event.input as { path?: string }).path ?? "";
       const hit = PROTECTED_PATHS.find((p) => filePath.includes(p));

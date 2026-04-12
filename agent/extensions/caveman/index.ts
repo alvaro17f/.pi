@@ -5,18 +5,19 @@
  * Makes the agent speak like a caveman - cutting ~75% of output tokens
  * while keeping full technical accuracy.
  *
- * Usage:
- * - `/caveman` - Toggle caveman mode on/off
- * - `/caveman lite` - Drop filler, keep grammar (professional)
- * - `/caveman full` - Default caveman mode (drop articles, fragments)
- * - `/caveman ultra` - Maximum compression, telegraphic
+ * /caveman       — toggle on/off (defaults to full)
+ * /caveman lite  — drop filler, keep grammar
+ * /caveman full  — drop articles, fragments ok
+ * /caveman ultra — maximum compression, telegraphic
+ * /caveman off   — disable
  *
- * State is persisted in settings.json so it survives restarts.
+ * State persisted in settings.json as caveman.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getSettingsPath } from "@mariozechner/pi-coding-agent";
+import { getAgentDir } from "@mariozechner/pi-coding-agent";
 import { readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 type CavemanLevel = "off" | "lite" | "full" | "ultra";
 
@@ -29,16 +30,18 @@ export const INSTRUCTIONS: Record<CavemanLevel, string> = {
   ultra: `Caveman Ultra Mode: Maximum compression. Telegraphic. Drop almost everything. Technical terms exact. Example: "Inline obj prop → new ref → re-render. useMemo."`,
 };
 
+const settingsPath = join(getAgentDir(), "settings.json");
+
 function loadSettings(): Record<string, unknown> {
   try {
-    return JSON.parse(readFileSync(getSettingsPath(), "utf-8"));
+    return JSON.parse(readFileSync(settingsPath, "utf-8"));
   } catch {
     return {};
   }
 }
 
 function saveSettings(settings: Record<string, unknown>): void {
-  writeFileSync(getSettingsPath(), JSON.stringify(settings, null, 2) + "\n");
+  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
 }
 
 function persistLevel(level: CavemanLevel): void {
@@ -96,10 +99,8 @@ export function detectCavemanTrigger(text: string): { level: CavemanLevel; stopp
 }
 
 export default function (pi: ExtensionAPI) {
-  // Restore persisted state
   currentLevel = restoreLevel();
 
-  // Register /caveman command
   pi.registerCommand("caveman", {
     description: "Toggle caveman mode - speak like caveman, fewer tokens",
     getArgumentCompletions: (prefix) => {
@@ -114,7 +115,6 @@ export default function (pi: ExtensionAPI) {
         currentLevel = currentLevel === "off" ? "full" : "off";
       } else {
         const cleanArg = levelArg.split(/\s+/)[0].replace(/[^a-z]/g, "");
-
         if (["lite", "full", "ultra", "off"].includes(cleanArg)) {
           currentLevel = cleanArg as CavemanLevel;
         } else {
@@ -128,7 +128,6 @@ export default function (pi: ExtensionAPI) {
     },
   });
 
-  // Apply caveman mode by injecting a user message with instructions
   pi.on("before_agent_start", async (event, ctx) => {
     if (currentLevel === "off") return;
 
@@ -144,7 +143,6 @@ export default function (pi: ExtensionAPI) {
     };
   });
 
-  // Auto-detect caveman triggers
   pi.on("input", async (event, ctx) => {
     const result = detectCavemanTrigger(event.text);
     if (result) {
