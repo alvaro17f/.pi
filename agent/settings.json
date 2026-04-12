@@ -14,5 +14,7 @@
     "npm:pi-ollama-web-search",
     "npm:pi-secret-guard"
   ],
-  "quietStartup": true
+  "quietStartup": true,
+  "safeGuard": false,
+  "caveman": "ultra"
 }
