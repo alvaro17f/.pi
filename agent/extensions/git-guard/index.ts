@@ -28,13 +28,11 @@ export function formatTurnMessage(count: number): string {
   return `Done after ${count} turn(s). Ready for input.`;
 }
 
-/**
- * Extension entry point — registers hooks for dirty-repo detection, stash checkpoints,
- * and completion notifications.
- */
 export default function (pi: ExtensionAPI) {
   /** Counts the number of agent turns for the checkpoint label. */
   let turnCount = 0;
+  /** Stores git stash refs created as checkpoints. */
+  const stashRefs: string[] = [];
 
   // Warn on dirty repo at session start
   pi.on("session_start", async (_event, ctx) => {
@@ -53,7 +51,11 @@ export default function (pi: ExtensionAPI) {
   pi.on("turn_start", async () => {
     turnCount++;
     try {
-      await pi.exec("git", ["stash", "create", "-m", `checkpoint-${turnCount}`]);
+      const { stdout } = await pi.exec("git", ["stash", "create", "-m", `checkpoint-${turnCount}`]);
+      const ref = stdout.trim();
+      if (ref) {
+        stashRefs.push(ref);
+      }
     } catch {
       // Not a git repo — skip silently
     }
@@ -64,5 +66,18 @@ export default function (pi: ExtensionAPI) {
     if (!process.stdout.isTTY) return;
     terminalNotify("pi", formatTurnMessage(turnCount));
     turnCount = 0;
+  });
+
+  // Register command to list checkpoint refs
+  pi.registerCommand("git-checkpoints", {
+    description: "List git stash checkpoint refs from this session",
+    handler: async (_args, ctx) => {
+      if (stashRefs.length === 0) {
+        ctx.ui.notify("No checkpoints recorded this session.", "info");
+        return;
+      }
+      const list = stashRefs.map((ref, i) => `${i + 1}. ${ref}`).join("\n");
+      ctx.ui.notify(`Checkpoint refs:\n${list}\n\nRestore with: git stash apply <ref>`, "info");
+    },
   });
 }

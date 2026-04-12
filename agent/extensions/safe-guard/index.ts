@@ -31,6 +31,17 @@ export const DANGEROUS_PATTERNS = [
 
 export const PROTECTED_PATHS = [".env", ".git/", "node_modules/", ".pi/", "id_rsa", ".ssh/"];
 
+/** Path-separator-aware matching to avoid false positives like `my.git/` or `id_rsa_backup`. */
+function isProtectedPath(filePath: string, pattern: string): boolean {
+  if (pattern.endsWith("/")) {
+    // Directory pattern: match at path boundary (start or after /)
+    return filePath.startsWith(pattern) || filePath.includes("/" + pattern);
+  } else {
+    // File pattern: match exactly at path boundary
+    return filePath === pattern || filePath.endsWith("/" + pattern) || filePath.startsWith(pattern + "/");
+  }
+}
+
 const settingsPath = getAgentDir() + "/settings.json";
 
 function loadSettings(): Record<string, unknown> {
@@ -100,7 +111,7 @@ export default function (pi: ExtensionAPI) {
 
     if (event.toolName === "write" || event.toolName === "edit") {
       const filePath = (event.input as { path?: string }).path ?? "";
-      const hit = PROTECTED_PATHS.find((p) => p.endsWith("/") ? filePath.includes("/" + p) || filePath.startsWith(p) : filePath.endsWith("/" + p) || filePath.startsWith(p));
+      const hit = PROTECTED_PATHS.find((p) => isProtectedPath(filePath, p));
       if (hit) {
         if (ctx.hasUI) {
           const ok = await ctx.ui.confirm("Protected Path", `Allow write to ${filePath}?`);

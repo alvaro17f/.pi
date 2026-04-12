@@ -24,7 +24,7 @@ export function fmt(n: number): string {
   return `${(n / 1000).toFixed(1)}k`;
 }
 
-type UsageTotals = { input: number; output: number; };
+type UsageTotals = { input: number; output: number };
 
 export function accumulateUsage(totals: UsageTotals, message: AssistantMessage): void {
   totals.input += Number(message.usage.input) || 0;
@@ -47,7 +47,6 @@ export default function (pi: ExtensionAPI) {
   let sessionStart = Date.now();
   let usageTotals: UsageTotals = { input: 0, output: 0 };
   let footerData: ReadonlyFooterDataProvider | null = null;
-  let cachedCtx: ExtensionContext | null = null;
   let agentStartMs = 0;
   let lastTps = 0;
   let lastQueryTime = 0;
@@ -74,8 +73,8 @@ export default function (pi: ExtensionAPI) {
     sessionStart = Date.now();
     lastTps = 0;
     lastQueryTime = 0;
+    agentStartMs = 0;
     usageTotals = collectTotals(ctx);
-    cachedCtx = ctx;
 
     ctx.ui.setFooter((tui, theme, fd) => {
       footerData = fd;
@@ -83,7 +82,11 @@ export default function (pi: ExtensionAPI) {
       const timer = setInterval(() => tui.requestRender(), 30000);
 
       return {
-        dispose() { unsub(); clearInterval(timer); },
+        dispose() {
+          unsub();
+          clearInterval(timer);
+          footerData = null;
+        },
         invalidate() {},
         render(width: number): string[] {
           const usage = ctx.getContextUsage();
@@ -137,7 +140,12 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("session_switch", (event, ctx) => {
     usageTotals = collectTotals(ctx);
-    if (event.reason === "new") { sessionStart = Date.now(); lastTps = 0; lastQueryTime = 0; }
+    if (event.reason === "new") {
+      sessionStart = Date.now();
+      lastTps = 0;
+      lastQueryTime = 0;
+      agentStartMs = 0;
+    }
   });
 
   pi.on("session_tree", (_event, ctx) => { usageTotals = collectTotals(ctx); });
