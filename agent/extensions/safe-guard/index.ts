@@ -72,7 +72,7 @@ export default function (pi: ExtensionAPI) {
       } else if (arg === "status") {
         const current = loadSettings();
         const persisted = current.safeGuard as boolean | undefined;
-        ctx.ui.showMessage(`safe-guard: ${enabled ? "enabled" : "disabled"} (settings.json: ${persisted ?? "unset"})`);
+        ctx.ui.notify(`safe-guard: ${enabled ? "enabled" : "disabled"} (settings.json: ${persisted ?? "unset"})`, "info");
         return;
       } else {
         enabled = !enabled;
@@ -81,7 +81,7 @@ export default function (pi: ExtensionAPI) {
       const updated = loadSettings();
       updated.safeGuard = enabled;
       saveSettings(updated);
-      ctx.ui.showMessage(`safe-guard ${enabled ? "enabled" : "disabled"}`);
+      ctx.ui.notify(`safe-guard ${enabled ? "enabled" : "disabled"}`, "info");
     },
   });
 
