@@ -108,6 +108,7 @@ export default function (pi: ExtensionAPI) {
         { value: "full", label: "full" },
         { value: "ultra", label: "ultra" },
         { value: "off", label: "off" },
+        { value: "status", label: "status" },
       ];
       return options.filter((o) => o.value.startsWith(prefix));
     },
@@ -116,12 +117,17 @@ export default function (pi: ExtensionAPI) {
 
       if (!levelArg) {
         currentLevel = currentLevel === "off" ? "full" : "off";
+      } else if (levelArg === "status") {
+        const current = loadSettings();
+        const persisted = current.caveman as string | undefined;
+        ctx.ui.notify(`caveman: ${currentLevel} (settings.json: ${persisted ?? "unset"})`, "info");
+        return;
       } else {
         const cleanArg = levelArg.split(/\s+/)[0].replace(/[^a-z]/g, "");
         if (["lite", "full", "ultra", "off"].includes(cleanArg)) {
           currentLevel = cleanArg as CavemanLevel;
         } else {
-          ctx.ui.notify(`Unknown level: ${args}. Use lite, full, ultra, or off.`, "error");
+          ctx.ui.notify(`Unknown level: ${args}. Use lite, full, ultra, off, or status.`, "error");
           return;
         }
       }

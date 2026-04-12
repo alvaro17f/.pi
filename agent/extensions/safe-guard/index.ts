@@ -55,24 +55,24 @@ export default function (pi: ExtensionAPI) {
     description: "Toggle safe-guard on/off",
     getArgumentCompletions: (prefix) => {
       const options = [
-        { value: "on", label: "Enable safe-guard" },
-        { value: "off", label: "Disable safe-guard" },
-        { value: "status", label: "Show current state" },
+        { value: "on", label: "on" },
+        { value: "off", label: "off" },
+        { value: "status", label: "status" },
       ];
       return options.filter((o) => o.value.startsWith(prefix));
     },
     handler: async (args, ctx) => {
       const arg = args?.trim().toLowerCase() || "";
 
-      if (arg === "on") {
-        enabled = true;
-      } else if (arg === "off") {
-        enabled = false;
-      } else if (arg === "status") {
+      if (arg === "status") {
         const current = loadSettings();
         const persisted = current.safeGuard as boolean | undefined;
         ctx.ui.notify(`safe-guard: ${enabled ? "enabled" : "disabled"} (settings.json: ${persisted ?? "unset"})`, "info");
         return;
+      } else if (arg === "on") {
+        enabled = true;
+      } else if (arg === "off") {
+        enabled = false;
       } else {
         enabled = !enabled;
       }
