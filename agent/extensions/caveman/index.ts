@@ -104,9 +104,14 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("caveman", {
     description: "Toggle caveman mode - speak like caveman, fewer tokens",
     getArgumentCompletions: (prefix) => {
-      const levels: CavemanLevel[] = ["lite", "full", "ultra", "off"];
-      const items = levels.map((l) => ({ value: l, label: l }));
-      return items.filter((i) => i.value.startsWith(prefix));
+      const options = [
+        { value: "lite", label: "Drop filler, keep grammar" },
+        { value: "full", label: "Drop articles, fragments ok" },
+        { value: "ultra", label: "Maximum compression, telegraphic" },
+        { value: "off", label: "Disable caveman mode" },
+      ];
+      const p = (prefix ?? "").trim().toLowerCase();
+      return options.filter((o) => o.value.startsWith(p));
     },
     handler: async (args, ctx) => {
       const levelArg = args?.trim().toLowerCase() || "";
