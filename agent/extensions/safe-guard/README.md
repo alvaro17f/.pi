@@ -35,6 +35,8 @@ Blocks writes to protected paths:
 
 In interactive mode: prompts for confirmation. In headless mode: outright blocks.
 
+Path matching is separator-aware — `id_rsa` matches `id_rsa` but not `id_rsa_backup`.
+
 ## Persistence
 
 State is persisted as `safeGuard` in `settings.json` and restored on startup.

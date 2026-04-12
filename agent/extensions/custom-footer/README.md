@@ -12,3 +12,7 @@ Custom TUI footer with expanded stats:
 - **Last query** — time of most recent agent query
 
 No commands — activates automatically on session start.
+
+## Notes
+
+TPS and query time reset on new session (not carried over from previous sessions).

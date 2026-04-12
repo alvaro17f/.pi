@@ -1,7 +1,7 @@
 # suppress-ollama-logs
 
-Suppresses pi-ollama startup log noise by filtering `[pi-ollama]`-prefixed console output for 10 seconds after load.
+Permanently filters `[pi-ollama]`-prefixed console output.
 
-Monkey-patches `console.log/debug/warn/error` to drop matching messages, then auto-restores the originals.
+Wraps `console.log/debug/warn/error` with a stable filter that drops any message starting with `[pi-ollama]`. The wrapper is never replaced, so other extensions can safely patch console methods on top without this filter being clobbered.
 
 No commands — activates automatically on extension load.
