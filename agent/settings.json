@@ -12,7 +12,8 @@
     "npm:@tintinweb/pi-subagents",
     "npm:pi-extmgr",
     "npm:pi-ollama-web-search",
-    "npm:pi-secret-guard"
+    "npm:pi-secret-guard",
+    "npm:tau-mirror"
   ],
   "quietStartup": true,
   "safeGuard": false,
