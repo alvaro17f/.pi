@@ -1,0 +1,18 @@
+{
+  "lastChangelogVersion": "0.66.1",
+  "defaultProvider": "ollama-cloud",
+  "defaultModel": "glm-5.1:cloud",
+  "theme": "catppuccin-mocha",
+  "hideThinkingBlock": false,
+  "defaultThinkingLevel": "medium",
+  "packages": [
+    "git:github.com/badlogic/pi-telegram",
+    "npm:@0xkobold/pi-ollama",
+    "npm:@ifi/pi-plan",
+    "npm:@tintinweb/pi-subagents",
+    "npm:pi-extmgr",
+    "npm:pi-ollama-web-search",
+    "npm:pi-secret-guard"
+  ],
+  "quietStartup": true
+}
