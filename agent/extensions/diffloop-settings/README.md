@@ -1,10 +1,14 @@
 # diffloop-settings
 
-Persists diffloop's enabled state in `settings.json` under `extensions.diffloop`.
+Persists diffloop enabled state across restarts via the `/dls` command.
 
-Diffloop doesn't persist its own state — it defaults to enabled on every startup. This extension:
+Diffloop doesn't persist its own state. pi skips the `input` event for extension commands, so we can't detect `/diffloop` usage directly. Instead, `/dls` acts as a proxy:
 
-- Restores the saved state on startup by auto-executing `/diffloop off` if needed
-- Persists state changes when the user runs `/diffloop on|off|toggle`
+- `/dls on` — enable diffloop + persist
+- `/dls off` — disable diffloop + persist
+- `/dls toggle` — toggle diffloop + persist
+- `/dls status` — show saved state
 
-No commands — activates automatically on session start.
+On startup, if saved state is `false`, auto-executes `/diffloop off`.
+
+State stored in `settings.json` under `extensionSettings.diffloop`.

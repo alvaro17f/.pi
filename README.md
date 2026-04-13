@@ -14,7 +14,7 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 | [safe-guard](agent/extensions/safe-guard/) | Blocks/confirms dangerous bash commands and writes to sensitive paths | `/safe [on\|off\|status]` |
 | [suppress-ollama-logs](agent/extensions/suppress-ollama-logs/) | Permanently filters `[pi-ollama]`-prefixed console output | — |
 | [suppress-tau-logs](agent/extensions/suppress-tau-logs/) | Permanently filters `[Mirror]`-prefixed console output from pi-tau | — |
-| [diffloop-settings](agent/extensions/diffloop-settings/) | Persists diffloop enabled state across restarts | — |
+| [diffloop-settings](agent/extensions/diffloop-settings/) | Persists diffloop enabled state across restarts via `/dls` command | `/dls [on|off|toggle|status]` |
 | [extension-settings](agent/extensions/extension-settings/) | Shared utility module for persisting extension state in settings.json | — |
 
 ## Skills

@@ -19,6 +19,6 @@
   "extensionSettings": {
     "safeGuard": false,
     "caveman": "ultra",
-    "diffloop": true
+    "diffloop": false
   }
 }

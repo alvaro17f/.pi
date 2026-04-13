@@ -1,60 +1,82 @@
 /**
  * Diffloop Settings — persists diffloop enabled state in settings.json.
  *
- * Diffloop doesn't persist its own state. This extension bridges that gap
- * by auto-executing /diffloop off at startup when the saved state is false,
- * and persisting state changes detected from session entries.
+ * Provides /dls command as a proxy for /diffloop that also persists state.
+ * On startup, auto-executes /diffloop off if saved state is false.
+ *
+ * Why /dls? pi skips the input event for extension commands, so we can't
+ * detect /diffloop usage directly. /dls persists state AND forwards to
+ * /diffloop automatically.
  *
  * State is stored under extensionSettings.diffloop in settings.json.
- *
- * Limitation: pi's input event is skipped when an extension command matches,
- * so we can't intercept /diffloop directly. Instead, we scan session entries
- * after each agent turn for /diffloop command usage and infer the state.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { getExtSetting, setExtSetting } from "../extension-settings/index.js";
 
+type DiffloopAction = "on" | "off" | "toggle" | "status" | "invalid";
+
+function parseAction(args: string | undefined): DiffloopAction {
+  const arg = (args ?? "").trim().toLowerCase();
+  if (!arg || arg === "status") return "status";
+  if (arg === "on" || arg === "enable" || arg === "enabled") return "on";
+  if (arg === "off" || arg === "disable" || arg === "disabled") return "off";
+  if (arg === "toggle") return "toggle";
+  return "invalid";
+}
+
 export default function (pi: ExtensionAPI) {
-  // After each agent turn, scan session entries for /diffloop commands
-  // and persist the inferred state.
-  pi.on("turn_end", async (_event, ctx) => {
-    const branch = ctx.sessionManager.getBranch();
-    // Walk entries in reverse to find the most recent /diffloop command
-    for (let i = branch.length - 1; i >= 0; i--) {
-      const entry = branch[i];
-      if (entry.type === "message" && entry.message.role === "user") {
-        const text = (entry.message.content as Array<{ type: string; text?: string }>)
-          ?.filter((c): c is { type: "text"; text: string } => c.type === "text")
-          ?.map((c) => c.text)
-          ?.join(" ") ?? "";
-        const lower = text.trim().toLowerCase();
-        if (lower.startsWith("/diffloop")) {
-          const arg = lower.replace(/^\/diffloop\s*/, "").trim();
-          if (arg === "on" || arg === "enable" || arg === "enabled") {
-            setExtSetting("diffloop", true);
-          } else if (arg === "off" || arg === "disable" || arg === "disabled") {
-            setExtSetting("diffloop", false);
-          } else if (arg === "toggle" || arg === "") {
-            // Toggle: read current and flip
-            const current = getExtSetting("diffloop", true) as boolean;
-            setExtSetting("diffloop", !current);
-          }
-          break; // Only process the most recent /diffloop command
-        }
+  pi.registerCommand("dls", {
+    description: "Diffloop save — toggle diffloop AND persist state",
+    getArgumentCompletions: (prefix) => {
+      const options = [
+        { value: "on", label: "on" },
+        { value: "off", label: "off" },
+        { value: "toggle", label: "toggle" },
+        { value: "status", label: "status" },
+      ];
+      return options.filter((o) => o.value.startsWith(prefix));
+    },
+    handler: async (args, ctx) => {
+      const action = parseAction(args);
+      if (action === "invalid") {
+        ctx.ui.notify("Usage: /dls [on|off|toggle|status]", "error");
+        return;
       }
-    }
+
+      if (action === "status") {
+        const saved = getExtSetting("diffloop", "unset");
+        ctx.ui.notify(`diffloop saved state: ${saved}`, "info");
+        return;
+      }
+
+      const current = getExtSetting("diffloop", true) as boolean;
+      const newState = action === "toggle" ? !current : action === "on";
+      setExtSetting("diffloop", newState);
+
+      // Forward to /diffloop by pre-filling editor + auto-submit
+      const cmd = newState ? "/diffloop on" : "/diffloop off";
+      ctx.ui.setEditorText(cmd);
+
+      const unsub = ctx.ui.onTerminalInput(() => {
+        unsub();
+        return { data: "\r" };
+      });
+
+      setTimeout(() => process.stdout.write("\x1b[6n"), 100);
+      setTimeout(() => unsub(), 3000);
+    },
   });
 
   // Restore saved state on startup.
   // Diffloop defaults to enabled=true. If saved state is false,
-  // pre-fill editor with /diffloop off + auto-submit.
+  // auto-execute /diffloop off.
   pi.on("session_start", async (event, ctx) => {
     if (event.reason !== "startup") return;
     if (!ctx.hasUI) return;
 
     const saved = getExtSetting("diffloop", true) as boolean;
-    if (saved) return; // diffloop is already enabled by default
+    if (saved) return;
 
     ctx.ui.setEditorText("/diffloop off");
 
@@ -63,10 +85,7 @@ export default function (pi: ExtensionAPI) {
       return { data: "\r" };
     });
 
-    // Trigger terminal response for auto-submit
     setTimeout(() => process.stdout.write("\x1b[6n"), 100);
-
-    // Fallback cleanup
     setTimeout(() => unsub(), 3000);
   });
 }
