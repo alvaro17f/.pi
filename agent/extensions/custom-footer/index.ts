@@ -27,8 +27,9 @@ export function fmt(n: number): string {
 type UsageTotals = { input: number; output: number };
 
 export function accumulateUsage(totals: UsageTotals, message: AssistantMessage): void {
-  totals.input += Number(message.usage.input) || 0;
-  totals.output += Number(message.usage.output) || 0;
+  const usage = message.usage;
+  totals.input += Number(usage?.input) || 0;
+  totals.output += Number(usage?.output) || 0;
 }
 
 export type { UsageTotals };
@@ -59,7 +60,8 @@ export default function (pi: ExtensionAPI) {
     let output = 0;
     for (const message of event.messages) {
       if (message.role === "assistant") {
-        output += (message as AssistantMessage).usage.output || 0;
+        const msg = message as AssistantMessage;
+        output += Number(msg.usage?.output) || 0;
       }
     }
     const elapsed = Date.now() - agentStartMs;

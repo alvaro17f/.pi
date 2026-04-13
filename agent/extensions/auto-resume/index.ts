@@ -65,19 +65,23 @@ export default function (pi: ExtensionAPI) {
 		ctx.ui.setEditorText("/resume-selected");
 
 		// Auto-submit via terminal input injection.
-		// Intercept the next terminal input and replace with Enter.
+		// Only intercept cursor position responses (\x1b[row;colR) to avoid
+		// consuming real keypresses like arrow keys.
+		const cprPattern = /^\x1b\[\d+;\d+R$/;
 		let submitted = false;
-		const unsub = ctx.ui.onTerminalInput(() => {
+		const unsub = ctx.ui.onTerminalInput((data) => {
+			if (!cprPattern.test(data)) return;
 			submitted = true;
 			unsub();
+			clearTimeout(cprTimer);
 			clearTimeout(cleanupTimer);
 			return { data: "\r" };
 		});
 
 		// Send cursor position report to elicit a terminal response.
-		// If the terminal doesn't respond, the next real keypress
-		// will trigger the submit instead (fallback).
-		const cprTimer = setTimeout(() => process.stdout.write("\x1b[6n"), 100);
+		const cprTimer = setTimeout(() => {
+			if (!submitted) process.stdout.write("\x1b[6n");
+		}, 100);
 
 		// Clean up if auto-submit hasn't happened after 3s —
 		// the user can still press Enter manually.

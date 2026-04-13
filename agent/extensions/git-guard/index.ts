@@ -66,6 +66,7 @@ export default function (pi: ExtensionAPI) {
     if (!process.stdout.isTTY) return;
     terminalNotify("pi", formatTurnMessage(turnCount));
     turnCount = 0;
+    stashRefs.length = 0;
   });
 
   // Register command to list checkpoint refs
