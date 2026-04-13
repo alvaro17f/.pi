@@ -58,3 +58,6 @@ export function setExtSetting(key: string, value: unknown): void {
   ext[key] = value;
   saveExtSettings(ext);
 }
+
+// No-op factory — this is a shared utility module, not an active extension.
+export default function () {}
