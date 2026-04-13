@@ -1,22 +1,18 @@
 /**
  * Caveman Extension for Pi Coding Agent
  *
- * Inspired by https://github.com/JuliusBrussee/caveman
- * Makes the agent speak like a caveman - cutting ~75% of output tokens
- * while keeping full technical accuracy.
- *
  * /caveman       — toggle on/off (defaults to full)
  * /caveman lite  — drop filler, keep grammar
  * /caveman full  — drop articles, fragments ok
  * /caveman ultra — maximum compression, telegraphic
  * /caveman off   — disable
+ * /caveman status — show current level + settings.json value
  *
- * State persisted in settings.json as caveman.
+ * State persisted in settings.json under extensions.caveman.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getAgentDir } from "@mariozechner/pi-coding-agent";
-import { readFileSync, writeFileSync } from "node:fs";
+import { getExtSetting, setExtSetting } from "../extension-settings/index.js";
 
 type CavemanLevel = "off" | "lite" | "full" | "ultra";
 
@@ -29,33 +25,12 @@ export const INSTRUCTIONS: Record<CavemanLevel, string> = {
   ultra: `Caveman Ultra Mode: Maximum compression. Telegraphic. Drop almost everything. Technical terms exact. Example: "Inline obj prop → new ref → re-render. useMemo."`,
 };
 
-const settingsPath = getAgentDir() + "/settings.json";
-
-function loadSettings(): Record<string, unknown> {
-  try {
-    return JSON.parse(readFileSync(settingsPath, "utf-8"));
-  } catch {
-    return {};
-  }
-}
-
-function saveSettings(settings: Record<string, unknown>): void {
-  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
-}
-
 function persistLevel(level: CavemanLevel): void {
-  const settings = loadSettings();
-  settings.caveman = level;
-  saveSettings(settings);
+  setExtSetting("caveman", level);
 }
 
 function restoreLevel(): CavemanLevel {
-  const settings = loadSettings();
-  const saved = settings.caveman as string | undefined;
-  if (saved && ["off", "lite", "full", "ultra"].includes(saved)) {
-    return saved as CavemanLevel;
-  }
-  return "off";
+  return (getExtSetting("caveman", "off") as CavemanLevel) || "off";
 }
 
 export function formatLevel(level: CavemanLevel): string {
@@ -118,9 +93,8 @@ export default function (pi: ExtensionAPI) {
       if (!levelArg) {
         currentLevel = currentLevel === "off" ? "full" : "off";
       } else if (levelArg === "status") {
-        const current = loadSettings();
-        const persisted = current.caveman as string | undefined;
-        ctx.ui.notify(`caveman: ${currentLevel} (settings.json: ${persisted ?? "unset"})`, "info");
+        const persisted = getExtSetting("caveman", "unset");
+        ctx.ui.notify(`caveman: ${currentLevel} (settings.json: ${persisted})`, "info");
         return;
       } else {
         const cleanArg = levelArg.split(/\s+/)[0].replace(/[^a-z]/g, "");

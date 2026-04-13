@@ -13,6 +13,9 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 | [quit](agent/extensions/quit/) | Double-press Ctrl+C to quit when idle | — |
 | [safe-guard](agent/extensions/safe-guard/) | Blocks/confirms dangerous bash commands and writes to sensitive paths | `/safe [on\|off\|status]` |
 | [suppress-ollama-logs](agent/extensions/suppress-ollama-logs/) | Permanently filters `[pi-ollama]`-prefixed console output | — |
+| [suppress-tau-logs](agent/extensions/suppress-tau-logs/) | Permanently filters `[Mirror]`-prefixed console output from pi-tau | — |
+| [diffloop-settings](agent/extensions/diffloop-settings/) | Persists diffloop enabled state across restarts | — |
+| [extension-settings](agent/extensions/extension-settings/) | Shared utility module for persisting extension state in settings.json | — |
 
 ## Skills
 
@@ -22,10 +25,11 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 
 ## Settings
 
-State is persisted in [`settings.json`](agent/settings.json):
+State is persisted in [`settings.json`](agent/settings.json) under the `extensions` key:
 
-- `caveman` — current caveman level (`off` / `lite` / `full` / `ultra`)
-- `safeGuard` — safe-guard enabled (`true` / `false`)
+- `extensions.caveman` — current caveman level (`off` / `lite` / `full` / `ultra`)
+- `extensions.safeGuard` — safe-guard enabled (`true` / `false`)
+- `extensions.diffloop` — diffloop enabled (`true` / `false`)
 
 ## Repository
 

@@ -1,23 +1,18 @@
 /**
  * Safe Guard Extension
  *
- * Two-layer protection for dangerous operations:
- * 1. Command guard — detects destructive bash patterns (rm -rf, DROP TABLE, etc.)
- *    and prompts for confirmation in interactive mode
- * 2. Path guard — blocks writes to sensitive paths (.env, .git/, .ssh/, etc.)
- *    with user confirmation in interactive mode, or outright blocking in headless mode
+ * Two-layer protection for dangerous operations.
  *
  * /safe        — toggle on/off
  * /safe on     — enable
  * /safe off    — disable
  * /safe status — show current state
  *
- * State persisted in settings.json as safeGuard.
+ * State persisted in settings.json under extensions.safeGuard.
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getAgentDir } from "@mariozechner/pi-coding-agent";
-import { readFileSync, writeFileSync } from "node:fs";
+import { getExtSetting, setExtSetting } from "../extension-settings/index.js";
 
 export const DANGEROUS_PATTERNS = [
   /\brm\s+(-[a-zA-Z]*f[a-zA-Z]*\s+|.*-rf\b|.*--force\b)/,
@@ -34,33 +29,16 @@ export const PROTECTED_PATHS = [".env", ".git/", "node_modules/", ".pi/", "id_rs
 /** Path-separator-aware matching to avoid false positives like `my.git/` or `id_rsa_backup`. */
 function isProtectedPath(filePath: string, pattern: string): boolean {
   if (pattern.endsWith("/")) {
-    // Directory pattern: match at path boundary (start or after /)
     return filePath.startsWith(pattern) || filePath.includes("/" + pattern);
   } else {
-    // File pattern: match exactly at path boundary
     return filePath === pattern || filePath.endsWith("/" + pattern) || filePath.startsWith(pattern + "/");
   }
-}
-
-const settingsPath = getAgentDir() + "/settings.json";
-
-function loadSettings(): Record<string, unknown> {
-  try {
-    return JSON.parse(readFileSync(settingsPath, "utf-8"));
-  } catch {
-    return {};
-  }
-}
-
-function saveSettings(settings: Record<string, unknown>): void {
-  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
 }
 
 let enabled = true;
 
 export default function (pi: ExtensionAPI) {
-  const settings = loadSettings();
-  enabled = (settings.safeGuard as boolean) ?? true;
+  enabled = (getExtSetting("safeGuard", true) as boolean) ?? true;
 
   pi.registerCommand("safe", {
     description: "Toggle safe-guard on/off",
@@ -76,9 +54,8 @@ export default function (pi: ExtensionAPI) {
       const arg = args?.trim().toLowerCase() || "";
 
       if (arg === "status") {
-        const current = loadSettings();
-        const persisted = current.safeGuard as boolean | undefined;
-        ctx.ui.notify(`safe-guard: ${enabled ? "enabled" : "disabled"} (settings.json: ${persisted ?? "unset"})`, "info");
+        const persisted = getExtSetting("safeGuard", "unset");
+        ctx.ui.notify(`safe-guard: ${enabled ? "enabled" : "disabled"} (settings.json: ${persisted})`, "info");
         return;
       } else if (arg === "on") {
         enabled = true;
@@ -88,9 +65,7 @@ export default function (pi: ExtensionAPI) {
         enabled = !enabled;
       }
 
-      const updated = loadSettings();
-      updated.safeGuard = enabled;
-      saveSettings(updated);
+      setExtSetting("safeGuard", enabled);
       ctx.ui.notify(`safe-guard ${enabled ? "enabled" : "disabled"}`, "info");
     },
   });
