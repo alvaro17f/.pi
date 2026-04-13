@@ -33,16 +33,16 @@ function writeSettings(settings: Record<string, unknown>): void {
   writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
 }
 
-/** Load the extensions sub-object from settings.json. */
+/** Load the extensionSettings sub-object from settings.json. */
 export function loadExtSettings(): ExtSettings {
   const settings = readSettings();
-  return (settings.extensions as ExtSettings) ?? {};
+  return (settings.extensionSettings as ExtSettings) ?? {};
 }
 
-/** Save the extensions sub-object to settings.json. */
+/** Save the extensionSettings sub-object to settings.json. */
 export function saveExtSettings(ext: ExtSettings): void {
   const settings = readSettings();
-  settings.extensions = ext;
+  settings.extensionSettings = ext;
   writeSettings(settings);
 }
 

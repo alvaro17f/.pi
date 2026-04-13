@@ -16,7 +16,7 @@
     "npm:pi-secret-guard"
   ],
   "quietStartup": true,
-  "extensions": {
+  "extensionSettings": {
     "safeGuard": false,
     "caveman": "ultra",
     "diffloop": true

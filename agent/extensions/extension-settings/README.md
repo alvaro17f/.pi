@@ -25,7 +25,7 @@ saveExtSettings(ext);
 
 ```json
 {
-  "extensions": {
+  "extensionSettings": {
     "safeGuard": false,
     "caveman": "ultra",
     "diffloop": true

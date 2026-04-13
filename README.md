@@ -27,9 +27,9 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 
 State is persisted in [`settings.json`](agent/settings.json) under the `extensions` key:
 
-- `extensions.caveman` — current caveman level (`off` / `lite` / `full` / `ultra`)
-- `extensions.safeGuard` — safe-guard enabled (`true` / `false`)
-- `extensions.diffloop` — diffloop enabled (`true` / `false`)
+- `extensionSettings.caveman` — current caveman level (`off` / `lite` / `full` / `ultra`)
+- `extensionSettings.safeGuard` — safe-guard enabled (`true` / `false`)
+- `extensionSettings.diffloop` — diffloop enabled (`true` / `false`)
 
 ## Repository
 
