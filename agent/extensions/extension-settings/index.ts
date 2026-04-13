@@ -13,6 +13,11 @@
 import { getAgentDir } from "@mariozechner/pi-coding-agent";
 import { readFileSync, writeFileSync } from "node:fs";
 
+const log = {
+  warn: (...args: unknown[]) => console.warn("[extension-settings]", ...args),
+  error: (...args: unknown[]) => console.error("[extension-settings]", ...args),
+};
+
 const settingsPath = getAgentDir() + "/settings.json";
 
 export interface ExtSettings {
@@ -22,13 +27,18 @@ export interface ExtSettings {
 function readSettings(): Record<string, unknown> {
   try {
     return JSON.parse(readFileSync(settingsPath, "utf-8"));
-  } catch {
+  } catch (err) {
+    log.warn("Failed to read settings.json, using empty defaults:", err);
     return {};
   }
 }
 
 function writeSettings(settings: Record<string, unknown>): void {
-  writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+  try {
+    writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n");
+  } catch (err) {
+    log.error("Failed to write settings.json:", err);
+  }
 }
 
 /** Load the extensionSettings sub-object from settings.json. */
@@ -45,16 +55,20 @@ export function saveExtSettings(ext: ExtSettings): void {
 }
 
 /** Get a single extension setting. */
-export function getExtSetting(key: string, defaultValue: unknown): unknown {
+export function getExtSetting<T>(key: string, defaultValue: T): T;
+export function getExtSetting(key: string, defaultValue: unknown): unknown;
+export function getExtSetting<T>(key: string, defaultValue: T): T {
   const ext = loadExtSettings();
-  return ext[key] ?? defaultValue;
+  return (ext[key] as T) ?? defaultValue;
 }
 
-/** Set a single extension setting. */
+/** Set a single extension setting (reads fresh, merges, writes atomically). */
 export function setExtSetting(key: string, value: unknown): void {
-  const ext = loadExtSettings();
+  const settings = readSettings();
+  const ext: ExtSettings = (settings.extensionSettings as ExtSettings) ?? {};
   ext[key] = value;
-  saveExtSettings(ext);
+  settings.extensionSettings = ext;
+  writeSettings(settings);
 }
 
 // No-op factory — this is a shared utility module, not an active extension.

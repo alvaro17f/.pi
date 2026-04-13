@@ -26,7 +26,6 @@ saveExtSettings(ext);
 {
   "extensionSettings": {
     "safeGuard": false,
-    "caveman": "ultra",
     "caveman": "ultra"
   }
 }

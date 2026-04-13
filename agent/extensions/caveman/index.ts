@@ -30,7 +30,11 @@ function persistLevel(level: CavemanLevel): void {
 }
 
 function restoreLevel(): CavemanLevel {
-  return (getExtSetting("caveman", "off") as CavemanLevel) || "off";
+  const stored = getExtSetting("caveman", "off");
+  if (typeof stored === "string" && stored in INSTRUCTIONS) {
+    return stored as CavemanLevel;
+  }
+  return "off";
 }
 
 export function formatLevel(level: CavemanLevel): string {
@@ -39,6 +43,7 @@ export function formatLevel(level: CavemanLevel): string {
     case "lite": return "Caveman Lite active. Drop filler, keep grammar.";
     case "full": return "Caveman mode active. Drop articles, fragments ok.";
     case "ultra": return "Caveman Ultra active. Maximum compression.";
+    default: return `Caveman ${level} active.`;
   }
 }
 

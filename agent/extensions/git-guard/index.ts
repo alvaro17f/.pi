@@ -14,13 +14,19 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
  * Send a terminal notification using the appropriate escape sequence.
  * Kitty terminals use OSC 99, others use OSC 777 (supported by iTerm2, foot, etc.).
  */
+function sanitizeTerminal(str: string): string {
+  return str.replace(/[\x00-\x1f\x7f]/g, "");
+}
+
 export function terminalNotify(title: string, body: string): void {
   if (!process.stdout.isTTY) return;
+  const safeTitle = sanitizeTerminal(title);
+  const safeBody = sanitizeTerminal(body);
   if (process.env.KITTY_WINDOW_ID) {
-    process.stdout.write(`\x1b]99;i=1:d=0;${title}\x1b\\`);
-    process.stdout.write(`\x1b]99;i=1:p=body;${body}\x1b\\`);
+    process.stdout.write(`\x1b]99;i=1:d=0;${safeTitle}\x1b\\`);
+    process.stdout.write(`\x1b]99;i=1:p=body;${safeBody}\x1b\\`);
   } else {
-    process.stdout.write(`\x1b]777;notify;${title};${body}\x07`);
+    process.stdout.write(`\x1b]777;notify;${safeTitle};${safeBody}\x07`);
   }
 }
 
@@ -64,6 +70,7 @@ export default function (pi: ExtensionAPI) {
   // Notify when agent is done
   pi.on("agent_end", () => {
     if (!process.stdout.isTTY) return;
+    if (turnCount === 0) return;
     terminalNotify("pi", formatTurnMessage(turnCount));
     turnCount = 0;
     stashRefs.length = 0;

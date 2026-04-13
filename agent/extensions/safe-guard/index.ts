@@ -15,13 +15,14 @@ import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { getExtSetting, setExtSetting } from "../extension-settings/index.js";
 
 export const DANGEROUS_PATTERNS = [
-  /\brm\s+(-[a-zA-Z]*f[a-zA-Z]*\s+|.*-rf\b|.*--force\b)/,
-  /\bsudo\s+rm\b/,
-  /\b(DROP|TRUNCATE|DELETE\s+FROM)\b/i,
-  /\bchmod\s+777\b/,
-  /\bmkfs\b/,
-  /\bdd\s+if=/,
-  />\s*\/dev\/sd[a-z]/,
+  /\brm\s+-[a-zA-Z]*f/,                    // rm -f, rm -rf, rm -fR etc.
+  /\brm\s+.*--force\b/,                      // rm --force
+  /\bsudo\s+rm\b/,                           // sudo rm
+  /\b(DROP|TRUNCATE|DELETE\s+FROM)\b/i,     // SQL destructive
+  /\bchmod\s+777\b/,                         // chmod 777
+  /\bmkfs\b/,                                // mkfs
+  /\bdd\s+if=/,                              // dd
+  />\s*\/dev\/sd[a-z]/,                      // redirect to disk
 ];
 
 export const PROTECTED_PATHS = [".env", ".git/", "node_modules/", ".pi/", "id_rsa", ".ssh/"];
@@ -29,7 +30,13 @@ export const PROTECTED_PATHS = [".env", ".git/", "node_modules/", ".pi/", "id_rs
 /** Path-separator-aware matching to avoid false positives like `my.git/` or `id_rsa_backup`. */
 function isProtectedPath(filePath: string, pattern: string): boolean {
   if (pattern.endsWith("/")) {
-    return filePath.startsWith(pattern) || filePath.includes("/" + pattern);
+    const dirName = pattern.slice(0, -1); // e.g. ".ssh" from ".ssh/"
+    return (
+      filePath.startsWith(pattern) ||                    // .ssh/config
+      filePath.startsWith(dirName + "/") ||            // .ssh/config (no leading slash)
+      filePath.includes("/" + pattern) ||               // foo/.ssh/bar
+      filePath.includes("/" + dirName + "/")           // foo/.ssh/bar
+    );
   } else {
     return filePath === pattern || filePath.endsWith("/" + pattern) || filePath.startsWith(pattern + "/");
   }
@@ -38,7 +45,8 @@ function isProtectedPath(filePath: string, pattern: string): boolean {
 let enabled = true;
 
 export default function (pi: ExtensionAPI) {
-  enabled = (getExtSetting("safeGuard", true) as boolean) ?? true;
+  const stored = getExtSetting("safeGuard", true);
+  enabled = typeof stored === "boolean" ? stored : true;
 
   pi.registerCommand("safe", {
     description: "Toggle safe-guard on/off",
@@ -74,7 +82,10 @@ export default function (pi: ExtensionAPI) {
     if (!enabled) return;
 
     if (event.toolName === "bash") {
-      const cmd = (event.input as { command?: string }).command ?? "";
+      const cmd =
+        (typeof event.input === "object" && event.input !== null && "command" in event.input)
+          ? String((event.input as { command: string }).command)
+          : "";
       const match = DANGEROUS_PATTERNS.find((p) => p.test(cmd));
       if (match && ctx.hasUI) {
         const ok = await ctx.ui.confirm("Dangerous Command", `Execute: ${cmd}?`);
@@ -85,7 +96,10 @@ export default function (pi: ExtensionAPI) {
     }
 
     if (event.toolName === "write" || event.toolName === "edit") {
-      const filePath = (event.input as { path?: string }).path ?? "";
+      const filePath =
+        (typeof event.input === "object" && event.input !== null && "path" in event.input)
+          ? String((event.input as { path: string }).path)
+          : "";
       const hit = PROTECTED_PATHS.find((p) => isProtectedPath(filePath, p));
       if (hit) {
         if (ctx.hasUI) {

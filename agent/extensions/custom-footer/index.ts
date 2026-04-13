@@ -9,6 +9,7 @@ import type { ExtensionAPI, ExtensionContext, ReadonlyFooterDataProvider } from 
 import { truncateToWidth } from "@mariozechner/pi-tui";
 
 export function formatElapsed(ms: number): string {
+  if (ms < 1000) return `${Math.round(ms)}ms`;
   const s = Math.floor(ms / 1000);
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);
@@ -28,8 +29,10 @@ type UsageTotals = { input: number; output: number };
 
 export function accumulateUsage(totals: UsageTotals, message: AssistantMessage): void {
   const usage = message.usage;
-  totals.input += Number(usage?.input) || 0;
-  totals.output += Number(usage?.output) || 0;
+  const input = Number(usage?.input);
+  const output = Number(usage?.output);
+  totals.input += Number.isFinite(input) ? input : 0;
+  totals.output += Number.isFinite(output) ? output : 0;
 }
 
 export type { UsageTotals };
@@ -57,11 +60,13 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("agent_end", (event) => {
+    if (agentStartMs === 0) return;
     let output = 0;
     for (const message of event.messages) {
       if (message.role === "assistant") {
         const msg = message as AssistantMessage;
-        output += Number(msg.usage?.output) || 0;
+        const out = Number(msg.usage?.output);
+        if (Number.isFinite(out)) output += out;
       }
     }
     const elapsed = Date.now() - agentStartMs;
