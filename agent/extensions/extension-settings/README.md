@@ -17,7 +17,6 @@ setExtSetting("caveman", "ultra"); // key, value
 
 // Load/save all extension settings at once
 const ext = loadExtSettings();
-ext.diffloop = true;
 saveExtSettings(ext);
 ```
 
@@ -28,7 +27,7 @@ saveExtSettings(ext);
   "extensionSettings": {
     "safeGuard": false,
     "caveman": "ultra",
-    "diffloop": true
+    "caveman": "ultra"
   }
 }
 ```

@@ -4,9 +4,7 @@
  * All extension settings are stored under the "extensions" key:
  *
  *   "extensions": {
- *     "safeGuard": false,
- *     "caveman": "ultra",
- *     "diffloop": true
+ *     "<extensionName>": <value>
  *   }
  *
  * Other extensions import `loadExtSettings` / `saveExtSettings` to read/write their state.
