@@ -67,9 +67,7 @@ export default function (pi: ExtensionAPI) {
 		// Auto-submit via terminal input injection.
 		// Intercept the next terminal input and replace with Enter.
 		let submitted = false;
-		const unsub = ctx.ui.onTerminalInput((data) => {
-			// Ignore cursor position responses — they start with \x1b[
-			if (data.startsWith("\x1b[")) return;
+		const unsub = ctx.ui.onTerminalInput(() => {
 			submitted = true;
 			unsub();
 			clearTimeout(cleanupTimer);
