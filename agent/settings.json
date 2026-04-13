@@ -12,8 +12,7 @@
     "npm:@tintinweb/pi-subagents",
     "npm:pi-extmgr",
     "npm:pi-ollama-web-search",
-    "npm:pi-secret-guard",
-    "git:github.com/deflating/tau"
+    "npm:pi-secret-guard"
   ],
   "quietStartup": true,
   "safeGuard": false,
