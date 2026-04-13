@@ -13,7 +13,7 @@
     "npm:pi-extmgr",
     "npm:pi-ollama-web-search",
     "npm:pi-secret-guard",
-    "npm:tau-mirror"
+    "git:github.com/deflating/tau"
   ],
   "quietStartup": true,
   "safeGuard": false,
