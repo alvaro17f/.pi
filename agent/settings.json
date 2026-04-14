@@ -8,7 +8,7 @@
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "medium",
   "packages": [
-"npm:@0xkobold/pi-ollama",
+    "npm:@0xkobold/pi-ollama",
     "npm:@ifi/pi-plan",
     {
       "source": "npm:@lpirito/pi-diffloop",
@@ -17,8 +17,7 @@
       ]
     },
     "npm:@tintinweb/pi-subagents",
-    "npm:pi-extmgr",
-    "npm:pi-ollama-web-search",
+"npm:pi-ollama-web-search",
     "npm:pi-secret-guard",
     {
       "source": "npm:tau-mirror",
@@ -28,7 +27,7 @@
     }
   ],
   "extensionSettings": {
-    "safeGuard": false,
+    "safeGuard": true,
     "caveman": "ultra"
   }
 }
