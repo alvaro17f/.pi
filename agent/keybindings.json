@@ -6,5 +6,6 @@
   "tui.select.down": [
     "down",
     "ctrl+j"
-  ]
+  ],
+  "app.session.resume": "ctrl+r"
 }
