@@ -17,7 +17,7 @@
       ]
     },
     "npm:@tintinweb/pi-subagents",
-"npm:pi-ollama-web-search",
+    "npm:pi-ollama-web-search",
     "npm:pi-secret-guard",
     {
       "source": "npm:tau-mirror",
