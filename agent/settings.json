@@ -18,13 +18,8 @@
     },
     "npm:@tintinweb/pi-subagents",
     "npm:pi-ollama-web-search",
-    {
-      "source": "npm:tau-mirror",
-      "extensions": [
-        "-extensions/mirror-server.ts"
-      ]
-    },
-    "npm:pi-secret-guard"
+    "npm:pi-secret-guard",
+    "npm:pi-messenger-bridge"
   ],
   "extensionSettings": {
     "safeGuard": false,
