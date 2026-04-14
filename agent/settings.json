@@ -27,7 +27,7 @@
     "npm:pi-secret-guard"
   ],
   "extensionSettings": {
-    "safeGuard": true,
+    "safeGuard": false,
     "caveman": "ultra"
   }
 }
