@@ -1,8 +1,10 @@
 {
-  "lastChangelogVersion": "0.66.1",
+  "lastChangelogVersion": "0.67.1",
   "defaultProvider": "ollama-cloud",
   "defaultModel": "glm-5.1:cloud",
   "theme": "catppuccin-mocha",
+  "enableInstallTelemetry": false,
+  "quietStartup": true,
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "medium",
   "packages": [
@@ -14,7 +16,6 @@
     "npm:pi-ollama-web-search",
     "npm:pi-secret-guard"
   ],
-  "quietStartup": true,
   "extensionSettings": {
     "safeGuard": false,
     "caveman": "ultra"
