@@ -11,10 +11,22 @@
     "git:github.com/badlogic/pi-telegram",
     "npm:@0xkobold/pi-ollama",
     "npm:@ifi/pi-plan",
+    {
+      "source": "npm:@lpirito/pi-diffloop",
+      "extensions": [
+        "-dist/index.js"
+      ]
+    },
     "npm:@tintinweb/pi-subagents",
     "npm:pi-extmgr",
     "npm:pi-ollama-web-search",
-    "npm:pi-secret-guard"
+    "npm:pi-secret-guard",
+    {
+      "source": "npm:tau-mirror",
+      "extensions": [
+        "-extensions/mirror-server.ts"
+      ]
+    }
   ],
   "extensionSettings": {
     "safeGuard": false,
