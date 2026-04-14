@@ -1,5 +1,4 @@
 {
-  "tui.editor.deleteToLineStart": [],
   "tui.select.up": [
     "up",
     "ctrl+k"
