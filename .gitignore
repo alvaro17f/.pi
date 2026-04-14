@@ -2,24 +2,24 @@
 
 !agent/
 
-  !agents/
-  !agents/**
+!agent/agents/
+!agent/agents/**
 
-  !extensions/
-  !extensions/**
+!agent/extensions/
+!agent/extensions/**
 
-  !prompts/
-  !prompts/**
+!agent/prompts/
+!agent/prompts/**
 
-  !skills/
-  !skills/**
+!agent/skills/
+!agent/skills/**
 
-  !themes/
-  !themes/**
+!agent/themes/
+!agent/themes/**
 
-  !AGENTS.md
-  !keybindings.json
-  !models.json
-  !settings.json
+!agent/AGENTS.md
+!agent/keybindings.json
+!agent/models.json
+!agent/settings.json
 
 !README.md
