@@ -8,12 +8,6 @@
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "medium",
   "packages": [
-    {
-      "source": "npm:@lpirito/pi-diffloop",
-      "extensions": [
-        "-dist/index.js"
-      ]
-    },
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
