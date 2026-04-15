@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.67.2",
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "glm-5.1:cloud",
+  "defaultModel": "glm-5.1",
   "theme": "catppuccin-mocha",
   "enableInstallTelemetry": false,
   "quietStartup": true,
@@ -14,13 +14,11 @@
         "-dist/index.js"
       ]
     },
-    "npm:@0xkobold/pi-ollama",
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@tintinweb/pi-subagents",
-    "npm:pi-ollama-web-search",
     "npm:pi-secret-guard"
   ],
   "extensionSettings": {

@@ -11,8 +11,8 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 | [notifications](agent/extensions/notifications/) | Desktop notifications via OSC 99/777 when agent finishes a turn | `/notifications [on|off|status]` |
 | [quit](agent/extensions/quit/) | Double-press Ctrl+C to quit when idle | — |
 | [safe-guard](agent/extensions/safe-guard/) | Blocks/confirms dangerous bash commands and writes to sensitive paths | `/safe [on\|off\|status]` |
-| [suppress-ollama-logs](agent/extensions/suppress-ollama-logs/) | Permanently filters `[pi-ollama]`-prefixed console output | — |
 | [extension-settings](agent/extensions/extension-settings/) | Shared utility module for persisting extension state in settings.json | — |
+| [ollama](agent/extensions/ollama/) | Local Ollama + Ollama Cloud provider + web search/fetch tools | `/ollama [status|update]` |
 
 ## Skills
 
