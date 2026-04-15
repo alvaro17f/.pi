@@ -1,14 +1,38 @@
 # notifications
 
-Desktop notifications when the agent finishes a turn. Uses OSC 99 (Kitty) or OSC 777 (iTerm2, foot, WezTerm).
+Desktop notification when the agent finishes a turn. Shows a snippet of the agent's last response as the notification body, stripped of Markdown formatting.
+
+Uses the **OSC 777** escape sequence — no external dependencies needed.
+
+### Supported terminals
+
+| Terminal | Works |
+|----------|-------|
+| Ghostty | ✅ |
+| iTerm2 | ✅ |
+| WezTerm | ✅ |
+| foot | ✅ |
+| rxvt-unicode | ✅ |
+| Kitty | ❌ (uses OSC 99) |
+| Terminal.app | ❌ |
+| Windows Terminal | ❌ |
+| Alacritty | ❌ |
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `/notifications` | Toggle notifications on/off |
-| `/notifications on` | Enable notifications |
-| `/notifications off` | Disable notifications |
+| `/notifications` | Toggle on/off |
+| `/notifications on` | Enable |
+| `/notifications off` | Disable |
 | `/notifications status` | Show current state |
 
-Default: enabled. State persisted in `extensionSettings.notifications` in `settings.json`.
+Default: enabled. State persisted as `extensionSettings.notifications` in `settings.json`.
+
+## How it works
+
+1. On `agent_end`, extracts the last assistant message text.
+2. Strips Markdown formatting → plain text.
+3. Normalizes whitespace, truncates to 200 chars (with `…`).
+4. Sends via OSC 777: title `"π"`, body = the snippet.
+5. If no text found: title `"Ready for input"`, empty body.

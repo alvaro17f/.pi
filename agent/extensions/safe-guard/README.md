@@ -9,34 +9,42 @@ Two-layer protection for dangerous operations.
 | `/safe` | Toggle on/off |
 | `/safe on` | Enable |
 | `/safe off` | Disable |
-| `/safe status` | Show current state + settings.json value |
+| `/safe status` | Show current state + `settings.json` value |
 
-## Protection layers
+Default: enabled. State persisted as `extensionSettings.safeGuard` in `settings.json`.
 
-### Command guard
+## Layer 1: Command guard
 
-Intercepts bash commands matching dangerous patterns:
+Intercepts `bash` tool calls matching dangerous patterns:
 
-- `rm -rf`, `rm --force`
-- `sudo rm`
-- `DROP TABLE`, `TRUNCATE`, `DELETE FROM`
-- `chmod 777`
-- `mkfs`
-- `dd if=`
-- Redirects to `/dev/sd*`
+| Pattern | Examples |
+|---------|---------|
+| `rm -f` / `rm -rf` | `rm -rf /tmp/old`, `rm -fR build/` |
+| `rm --force` | `rm --force logfile` |
+| `sudo rm` | `sudo rm -rf /opt/old` |
+| `DROP TABLE` / `TRUNCATE` / `DELETE FROM` | SQL destructive statements |
+| `chmod 777` | `chmod 777 /var/data` |
+| `mkfs` | `mkfs.ext4 /dev/sda1` |
+| `dd if=` | `dd if=/dev/zero of=/dev/sda` |
+| Redirect to `/dev/sd*` | `something > /dev/sda` |
 
-In interactive mode: prompts for confirmation. In headless mode: outright blocks.
+**Interactive mode**: prompts for confirmation.
+**Headless mode**: outright blocks.
 
-### Path guard
+## Layer 2: Path guard
 
-Blocks writes to protected paths:
+Blocks `write` and `edit` tool calls to protected paths:
 
-`.env`, `.git/`, `node_modules/`, `.pi/`, `id_rsa`, `.ssh/`
+| Protected path | Matches | Does not match |
+|---------------|---------|----------------|
+| `.env` | `.env`, `foo/.env` | `.envrc`, `.env.local` |
+| `.git/` | `.git/config`, `foo/.git/HEAD` | `my.git/` |
+| `node_modules/` | `node_modules/pkg/index.js` | `node_modules_backup/` |
+| `.pi/` | `.pi/settings.json` | `.pip/` |
+| `id_rsa` | `id_rsa`, `ssh/id_rsa` | `id_rsa_backup` |
+| `.ssh/` | `.ssh/config`, `foo/.ssh/known_hosts` | `my.ssh/` |
 
-In interactive mode: prompts for confirmation. In headless mode: outright blocks.
+Path matching is **separator-aware** — only matches exact names bounded by `/` or string start/end.
 
-Path matching is separator-aware — `id_rsa` matches `id_rsa` but not `id_rsa_backup`.
-
-## Persistence
-
-State is persisted as `safeGuard` in `settings.json` and restored on startup.
+**Interactive mode**: prompts for confirmation.
+**Headless mode**: outright blocks.

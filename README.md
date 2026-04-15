@@ -6,13 +6,13 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 
 | Extension | Description | Commands |
 |-----------|-------------|----------|
-| [caveman](agent/extensions/caveman/) | Token-saving output compression (~75% fewer tokens) | `/caveman [lite\|full\|ultra\|off\|status]` |
-| [custom-footer](agent/extensions/custom-footer/) | TUI footer with token stats, context %, TPS, query time, git branch | — |
-| [notifications](agent/extensions/notifications/) | Desktop notifications via OSC 99/777 when agent finishes a turn | `/notifications [on|off|status]` |
-| [quit](agent/extensions/quit/) | Double-press Ctrl+C to quit when idle | — |
+| [caveman](agent/extensions/caveman/) | Token-saving output compression (~75% fewer tokens). 4 levels: lite, full, ultra, off. | `/caveman [lite\|full\|ultra\|off\|status]` |
+| [custom-footer](agent/extensions/custom-footer/) | TUI footer: model, token stats, context %, elapsed, CWD, git branch, TPS, query time | — |
+| [notifications](agent/extensions/notifications/) | Desktop notifications via OSC 777 when agent finishes. Shows response snippet as body. | `/notifications [on\|off\|status]` |
+| [ollama](agent/extensions/ollama/) | Local Ollama + Ollama Cloud provider + `ollama_web_search` / `ollama_web_fetch` tools | `/ollama [status\|update]` |
+| [quit](agent/extensions/quit/) | Double-press `app.clear` key (Ctrl+C) to quit when idle | — |
 | [safe-guard](agent/extensions/safe-guard/) | Blocks/confirms dangerous bash commands and writes to sensitive paths | `/safe [on\|off\|status]` |
-| [extension-settings](agent/extensions/extension-settings/) | Shared utility module for persisting extension state in settings.json | — |
-| [ollama](agent/extensions/ollama/) | Local Ollama + Ollama Cloud provider + web search/fetch tools | `/ollama [status|update]` |
+| [extension-settings](agent/extensions/extension-settings/) | Shared utility module for persisting extension state in `settings.json` | — |
 
 ## Skills
 
@@ -22,11 +22,13 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 
 ## Settings
 
-State is persisted in [`settings.json`](agent/settings.json) under the `extensions` key:
+State is persisted in [`settings.json`](agent/settings.json) under the `extensionSettings` key:
 
-- `extensionSettings.caveman` — current caveman level (`off` / `lite` / `full` / `ultra`)
-- `extensionSettings.safeGuard` — safe-guard enabled (`true` / `false`)
-- `extensionSettings.notifications` — desktop notifications enabled (`true` / `false`)
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| `caveman` | `"off" \| "lite" \| "full" \| "ultra"` | `"off"` | Caveman compression level |
+| `safeGuard` | `boolean` | `true` | Safe-guard enabled |
+| `notifications` | `boolean` | `true` | Desktop notifications enabled |
 
 ## Repository
 

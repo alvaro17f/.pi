@@ -1,34 +1,37 @@
 # extension-settings
 
-Shared module for persisting extension state in `settings.json` under the `extensions` key.
+Shared utility module for persisting extension state in `settings.json` under the `extensionSettings` key.
 
-All extensions that need persistent settings use `getExtSetting` / `setExtSetting` from this module instead of reading/writing `settings.json` directly.
+Other extensions import `getExtSetting` / `setExtSetting` instead of reading/writing `settings.json` directly.
 
 ## API
 
 ```ts
 import { getExtSetting, setExtSetting, loadExtSettings, saveExtSettings } from "../extension-settings/index.js";
 
-// Get a single value
-const level = getExtSetting("caveman", "off"); // key, defaultValue
+// Get a single value (with default)
+const level = getExtSetting<string>("caveman", "off");
 
-// Set a single value
-setExtSetting("caveman", "ultra"); // key, value
+// Set a single value (reads fresh, merges, writes atomically)
+setExtSetting("caveman", "ultra");
 
-// Load/save all extension settings at once
-const ext = loadExtSettings();
+// Load all extension settings at once
+const ext = loadExtSettings(); // → ExtSettings
+
+// Save all extension settings at once
 saveExtSettings(ext);
 ```
 
-## Settings structure
+## Resulting `settings.json` structure
 
 ```json
 {
   "extensionSettings": {
     "safeGuard": false,
-    "caveman": "ultra"
+    "caveman": "ultra",
+    "notifications": true
   }
 }
 ```
 
-No commands — this is a shared utility module, not an active extension.
+No commands — this is a shared utility module, not an active extension. Registers a no-op factory function.
