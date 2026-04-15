@@ -1,6 +1,6 @@
 # .pi — Pi Coding Agent Configuration
 
-User extensions, skills, and settings for [pi](https://github.com/mariozechner/pi-coding-agent).
+User extensions, skills, and settings for [pi](https://github.com/badlogic/pi-mono).
 
 ## Extensions
 
@@ -22,14 +22,39 @@ User extensions, skills, and settings for [pi](https://github.com/mariozechner/p
 
 ## Settings
 
-State is persisted in [`settings.json`](agent/settings.json) under the `extensionSettings` key:
+### General
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `caveman` | `"off" \| "lite" \| "full" \| "ultra"` | `"off"` | Caveman compression level |
-| `safeGuard` | `boolean` | `true` | Safe-guard enabled |
-| `notifications` | `boolean` | `true` | Desktop notifications enabled |
+| Key | Type | Default | Current | Description |
+|-----|------|---------|---------|-------------|
+| `defaultProvider` | `string` | — | `ollama-cloud` | Default model provider |
+| `defaultModel` | `string` | — | `glm-5.1` | Default model ID |
+| `theme` | `string` | — | `catppuccin-mocha` | TUI theme |
+| `quietStartup` | `boolean` | `false` | `true` | Suppress startup messages |
+| `hideThinkingBlock` | `boolean` | `false` | `false` | Hide thinking blocks in output |
+| `defaultThinkingLevel` | `string` | `medium` | `medium` | Default thinking level |
+| `enableInstallTelemetry` | `boolean` | `true` | `false` | Telemetry on package install |
 
-## Repository
+### Packages
 
-[github.com/alvaro17f/.pi](https://github.com/alvaro17f/.pi)
+Installed from [`settings.json`](agent/settings.json) `packages` array:
+
+| Package | Source |
+|---------|--------|
+| `@ahkohd/oyo` | npm |
+| `@ahkohd/pi-oyo` | npm |
+| `@getpaseo/cli` | npm |
+| `@ifi/pi-plan` | npm |
+| `@tintinweb/pi-subagents` | npm |
+| `pi-secret-guard` | npm |
+| `condensed-milk-pi` | git:github.com/tomooshi |
+
+### Extension settings
+
+Persisted in [`settings.json`](agent/settings.json) under `extensionSettings`:
+
+| Key | Type | Default | Current | Description |
+|-----|------|---------|---------|-------------|
+| `caveman` | `"off" \| "lite" \| "full" \| "ultra"` | `"off"` | `ultra` | Caveman compression level |
+| `safeGuard` | `boolean` | `true` | `false` | Safe-guard enabled |
+| `notifications` | `boolean` | `true` | `true` | Desktop notifications enabled |
+
