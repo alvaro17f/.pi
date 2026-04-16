@@ -15,7 +15,8 @@
     "npm:@ifi/pi-plan",
     "npm:@tintinweb/pi-subagents",
     "npm:pi-observational-memory",
-    "npm:pi-secret-guard"
+    "npm:pi-secret-guard",
+    "npm:pi-tool-display"
   ],
   "extensionSettings": {
     "safeGuard": false,
