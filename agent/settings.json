@@ -15,6 +15,7 @@
     "npm:@lpirito/pi-diffloop",
     "npm:@tintinweb/pi-subagents",
     "npm:@tomooshi/condensed-milk-pi",
+    "npm:pi-image-preview",
     "npm:pi-observational-memory",
     "npm:pi-secret-guard",
     "npm:pi-tool-display"
