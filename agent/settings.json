@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.67.3",
+  "lastChangelogVersion": "0.67.6",
   "defaultProvider": "ollama-cloud",
   "defaultModel": "glm-5.1",
   "theme": "catppuccin-mocha",
@@ -8,12 +8,13 @@
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "medium",
   "packages": [
-    "git:github.com/tomooshi/condensed-milk-pi",
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
+    "npm:@sinamtz/pi-minimax-provider",
     "npm:@tintinweb/pi-subagents",
+    "npm:@tomooshi/condensed-milk-pi",
     "npm:pi-observational-memory",
     "npm:pi-secret-guard",
     "npm:pi-tool-display"
