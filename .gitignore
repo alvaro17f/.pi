@@ -17,6 +17,9 @@
 !agent/themes/
 !agent/themes/**
 
+!agent/utils/
+!agent/utils/**
+
 !agent/AGENTS.md
 !agent/keybindings.json
 !agent/models.json
