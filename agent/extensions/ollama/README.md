@@ -81,7 +81,7 @@ On startup, checks if Ollama is reachable at `OLLAMA_HOST`. If so, fetches `/api
 
 ### Cloud discovery
 
-On startup, reads cached model data from `~/.pi/agent/cache/ollama-cloud-models.json`. If no cache, registers a small set of fallback models. `/ollama sync` fetches `/v1/models` + `/api/show` per model, filters to those with `tools` capability, and caches the result.
+On startup, reads cached model data from `~/.cache/pi/ollama-cloud-models.json`. If no cache, registers a small set of fallback models. `/ollama sync` fetches `/v1/models` + `/api/show` per model, filters to those with `tools` capability, and caches the result.
 
 ### Web tools
 
