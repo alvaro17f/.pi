@@ -18,13 +18,15 @@ Local Ollama + Ollama Cloud + Web Tools — all in one extension.
    export OLLAMA_API_KEY="your-key"
    ```
 
-   Or add to `~/.pi/agent/auth.json`:
+   Or use `/login` → **Ollama Cloud** to store it in auth.json.
+
+   Or manually add to `~/.pi/agent/auth.json`:
 
    ```json
    { "ollama-cloud": { "type": "api_key", "key": "your-key" } }
    ```
 
-3. Run `/ollama update` to fetch the cloud model catalog
+3. Run `/ollama sync` to fetch the cloud model catalog
 
 ### Local
 
@@ -41,7 +43,7 @@ export OLLAMA_HOST="http://192.168.1.50:11434"
 | Command | Description |
 |---------|-------------|
 | `/ollama status` | Show connection status (local + cloud) |
-| `/ollama update` | Refresh model list (local + cloud) |
+| `/ollama sync` | Refresh model list (local + cloud) |
 
 ## Tools
 
@@ -79,7 +81,7 @@ On startup, checks if Ollama is reachable at `OLLAMA_HOST`. If so, fetches `/api
 
 ### Cloud discovery
 
-On startup, reads cached model data from `~/.pi/agent/cache/ollama-cloud-models.json`. If no cache, registers a small set of fallback models. `/ollama update` fetches `/v1/models` + `/api/show` per model, filters to those with `tools` capability, and caches the result.
+On startup, reads cached model data from `~/.pi/agent/cache/ollama-cloud-models.json`. If no cache, registers a small set of fallback models. `/ollama sync` fetches `/v1/models` + `/api/show` per model, filters to those with `tools` capability, and caches the result.
 
 ### Web tools
 
