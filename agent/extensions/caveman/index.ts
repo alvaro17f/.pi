@@ -12,7 +12,7 @@
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getExtSetting, setExtSetting } from "../../utils/extension-settings.js";
+import { getExtSetting, setExtSetting } from "../../utils/extension-settings/index.js";
 
 type CavemanLevel = "off" | "lite" | "full" | "ultra";
 

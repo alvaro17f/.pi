@@ -12,7 +12,7 @@
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { getExtSetting, setExtSetting } from "../../utils/extension-settings.js";
+import { getExtSetting, setExtSetting } from "../../utils/extension-settings/index.js";
 
 export const DANGEROUS_PATTERNS = [
   /\brm\s+-[a-zA-Z]*f/,                    // rm -f, rm -rf, rm -fR etc.
