@@ -15,7 +15,7 @@
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import type { AutocompleteItem } from "@mariozechner/pi-tui";
 import { Markdown, type MarkdownTheme } from "@mariozechner/pi-tui";
-import { getExtSetting, setExtSetting } from "../extension-settings/index.js";
+import { getExtSetting, setExtSetting } from "../../utils/extension-settings.js";
 
 // ── OSC 777 notification ──────────────────────────────────────────────
 

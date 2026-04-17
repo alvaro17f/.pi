@@ -7,7 +7,7 @@ Other extensions import `getExtSetting` / `setExtSetting` instead of reading/wri
 ## API
 
 ```ts
-import { getExtSetting, setExtSetting, loadExtSettings, saveExtSettings } from "../extension-settings/index.js";
+import { getExtSetting, setExtSetting, loadExtSettings, saveExtSettings } from "../../utils/extension-settings.js";
 
 // Get a single value (with default)
 const level = getExtSetting<string>("caveman", "off");
