@@ -30,7 +30,7 @@ import { Type } from "@sinclair/typebox";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const CACHE_DIR = join(homedir(), ".pi", "agent", "cache");
+const CACHE_DIR = join(homedir(), ".cache", "pi");
 const CACHE_FILE = join(CACHE_DIR, "ollama-cloud-models.json");
 const FETCH_TIMEOUT_MS = 10_000;
 const DEFAULT_MAX_TOKENS = 32768;
