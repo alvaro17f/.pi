@@ -12,6 +12,7 @@
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
+    "npm:@lpirito/pi-diffloop",
     "npm:@tintinweb/pi-subagents",
     "npm:@tomooshi/condensed-milk-pi",
     "npm:pi-observational-memory",
