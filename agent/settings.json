@@ -16,6 +16,7 @@
     "npm:@sting8k/pi-vcc",
     "npm:@tintinweb/pi-subagents",
     "npm:@tomooshi/condensed-milk-pi",
+    "npm:pi-btw",
     "npm:pi-image-preview",
     "npm:pi-secret-guard",
     "npm:pi-tool-display"
