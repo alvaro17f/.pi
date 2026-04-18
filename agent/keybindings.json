@@ -1,4 +1,5 @@
 {
+  "app.session.resume": "ctrl+r",
   "tui.select.up": [
     "up",
     "ctrl+k"
@@ -7,5 +8,12 @@
     "down",
     "ctrl+j"
   ],
-  "app.session.resume": "ctrl+r"
+  "tui.select.right": [
+    "right",
+    "ctrl+l"
+  ],
+  "tui.select.left": [
+    "left",
+    "ctrl+h"
+  ]
 }
