@@ -20,7 +20,7 @@ Inspired by [JuliusBrussee/caveman](https://github.com/JuliusBrussee/caveman).
 Phrases in chat that also toggle caveman mode:
 
 - `"caveman mode"`, `"talk like caveman"`, `"use caveman"`, `"less tokens"`, `"be brief"`, `"fewer tokens"` → activate (defaults to **full**; append `lite` or `ultra` for other levels)
-- `"stop caveman"`, `"normal mode"` → deactivate
+- `"stop caveman"`, `"caveman off"`, `"normal mode"` → deactivate
 
 ## Levels
 

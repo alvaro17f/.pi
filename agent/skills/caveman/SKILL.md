@@ -69,7 +69,7 @@ max = concurrent connections. Keep under DB limit. idleTimeout kill stale conn.
 - Code: write normal. Caveman English only
 - Git commits: normal
 - PR descriptions: normal
-- User say "stop caveman" or "normal mode": revert immediately
+- User say "stop caveman", "caveman off", or "normal mode": revert immediately
 
 ## Intensity Levels
 

@@ -1,12 +1,11 @@
 /**
  * Caveman Extension for Pi Coding Agent
  *
- * /caveman       — toggle on/off (defaults to full)
+ * /caveman       — show status
  * /caveman lite  — drop filler, keep grammar
  * /caveman full  — drop articles, fragments ok
  * /caveman ultra — maximum compression, telegraphic
  * /caveman off   — disable
- * /caveman status — show current level + settings.json value
  *
  * State persisted in settings.json under extensions.caveman.
  */
@@ -16,127 +15,107 @@ import { getExtSetting, setExtSetting } from "../../utils/extension-settings/ind
 
 type CavemanLevel = "off" | "lite" | "full" | "ultra";
 
-let currentLevel: CavemanLevel = "off";
+const VALID_LEVELS: readonly CavemanLevel[] = ["off", "lite", "full", "ultra"];
+const IS_VALID_LEVEL = (level: string): level is CavemanLevel => VALID_LEVELS.includes(level as CavemanLevel);
 
-export const INSTRUCTIONS: Record<CavemanLevel, string> = {
+const INSTRUCTIONS: Record<CavemanLevel, string> = {
   off: "",
   lite: `Caveman Lite Mode: Keep grammar. Drop filler words like "just", "really", "basically", "actually", "simply". Remove pleasantries like "sure", "certainly", "of course", "happy to". Professional but no fluff.`,
   full: `Caveman Mode: Drop articles (a, an, the). Drop filler (just, really, basically, actually, simply). Drop pleasantries (sure, certainly, of course). Short synonyms (big not extensive, fix not "implement a solution for"). No hedging. Fragments fine. Technical terms stay exact. Code blocks unchanged. Pattern: [thing] [action] [reason]. [next step].`,
   ultra: `Caveman Ultra Mode: Maximum compression. Telegraphic. Drop almost everything. Technical terms exact. Example: "Inline obj prop → new ref → re-render. useMemo."`,
 };
 
-function persistLevel(level: CavemanLevel): void {
-  setExtSetting("caveman", level);
-}
+const LEVEL_MESSAGES: Record<CavemanLevel, string> = {
+  off: "Normal mode. Caveman go away.",
+  lite: "Caveman Lite active. Drop filler, keep grammar.",
+  full: "Caveman mode active. Drop articles, fragments ok.",
+  ultra: "Caveman Ultra active. Maximum compression.",
+};
 
-function restoreLevel(): CavemanLevel {
+const TRIGGERS = [
+  "caveman mode",
+  "talk like caveman",
+  "use caveman",
+  "less tokens",
+  "be brief",
+  "fewer tokens",
+] as const;
+
+const STOP_TRIGGERS = ["stop caveman", "caveman off", "normal mode", "normal 说话"] as const;
+
+const LEVEL_OPTIONS = VALID_LEVELS.map((value) => ({ value, label: value }));
+
+const getStoredLevel = (): CavemanLevel => {
   const stored = getExtSetting("caveman", "off");
-  if (typeof stored === "string" && stored in INSTRUCTIONS) {
-    return stored as CavemanLevel;
-  }
-  return "off";
-}
+  return IS_VALID_LEVEL(stored) ? stored : "off";
+};
 
-export function formatLevel(level: CavemanLevel): string {
-  switch (level) {
-    case "off": return "Normal mode. Caveman go away.";
-    case "lite": return "Caveman Lite active. Drop filler, keep grammar.";
-    case "full": return "Caveman mode active. Drop articles, fragments ok.";
-    case "ultra": return "Caveman Ultra active. Maximum compression.";
-    default: return `Caveman ${level} active.`;
-  }
-}
+const persistLevel = (level: CavemanLevel): void => setExtSetting("caveman", level);
 
-export function detectCavemanTrigger(text: string): { level: CavemanLevel; stopped: boolean } | null {
+const formatLevel = (level: CavemanLevel): string => LEVEL_MESSAGES[level];
+
+const detectCavemanTrigger = (text: string): { level: CavemanLevel; stopped: boolean } | null => {
   const lower = text.toLowerCase();
-  const triggers = [
-    "caveman mode",
-    "talk like caveman",
-    "use caveman",
-    "less tokens",
-    "be brief",
-    "fewer tokens",
-  ];
 
-  for (const trigger of triggers) {
-    if (lower.includes(trigger)) {
-      let level: CavemanLevel = "full";
-      if (lower.includes("lite")) level = "lite";
-      else if (lower.includes("ultra")) level = "ultra";
-      return { level, stopped: false };
-    }
+  // Check stop triggers first (before regular triggers) to handle "caveman off" correctly
+  const isStopTrigger = STOP_TRIGGERS.some((stop) => lower.includes(stop));
+  if (isStopTrigger) {
+    return { level: "off", stopped: true };
   }
 
-  const stopTriggers = ["stop caveman", "normal mode", "normal 说话"];
-  for (const stop of stopTriggers) {
-    if (lower.includes(stop)) {
-      return { level: "off", stopped: true };
-    }
+  const isTrigger = TRIGGERS.some((trigger) => lower.includes(trigger));
+  if (isTrigger) {
+    const level: CavemanLevel = lower.includes("ultra") ? "ultra" : lower.includes("lite") ? "lite" : "full";
+    return { level, stopped: false };
   }
 
   return null;
-}
+};
 
-export default function (pi: ExtensionAPI) {
-  currentLevel = restoreLevel();
+const parseLevelArg = (arg: string): CavemanLevel | null => {
+  const cleanArg = arg.split(/\s+/)[0]!.replace(/[^a-z]/g, "");
+  return IS_VALID_LEVEL(cleanArg) ? cleanArg : null;
+};
+
+export default function (pi: ExtensionAPI): void {
+  const currentLevel = { value: getStoredLevel() };
 
   pi.registerCommand("caveman", {
-    description: "Toggle caveman mode - speak like caveman, fewer tokens",
-    getArgumentCompletions: (prefix) => {
-      const options = [
-        { value: "lite", label: "lite" },
-        { value: "full", label: "full" },
-        { value: "ultra", label: "ultra" },
-        { value: "off", label: "off" },
-        { value: "status", label: "status" },
-      ];
-      return options.filter((o) => o.value.startsWith(prefix));
-    },
+    description: "Caveman mode - set level: lite, full, ultra, off",
+    getArgumentCompletions: (prefix) => LEVEL_OPTIONS.filter((o) => o.value.startsWith(prefix)),
     handler: async (args, ctx) => {
-      const levelArg = args?.trim().toLowerCase() || "";
+      const levelArg = args?.trim().toLowerCase() ?? "";
+      const parsedLevel = levelArg ? parseLevelArg(levelArg) : null;
 
-      if (!levelArg) {
-        currentLevel = currentLevel === "off" ? "full" : "off";
-      } else if (levelArg === "status") {
-        const persisted = getExtSetting("caveman", "unset");
-        ctx.ui.notify(`caveman: ${currentLevel} (settings.json: ${persisted})`, "info");
-        return;
+      if (parsedLevel !== null) {
+        currentLevel.value = parsedLevel;
+        persistLevel(currentLevel.value);
+        ctx.ui.notify(formatLevel(currentLevel.value), "info");
       } else {
-        const cleanArg = levelArg.split(/\s+/)[0].replace(/[^a-z]/g, "");
-        if (["lite", "full", "ultra", "off"].includes(cleanArg)) {
-          currentLevel = cleanArg as CavemanLevel;
-        } else {
-          ctx.ui.notify(`Unknown level: ${args}. Use lite, full, ultra, off, or status.`, "error");
-          return;
-        }
+        ctx.ui.notify(`caveman: ${currentLevel.value}`, "info");
       }
-
-      persistLevel(currentLevel);
-      ctx.ui.notify(formatLevel(currentLevel), "info");
     },
   });
 
-  pi.on("before_agent_start", async (event, ctx) => {
-    if (currentLevel === "off") return;
+  pi.on("before_agent_start", async (_event, _ctx) => {
+    if (currentLevel.value === "off") return;
 
-    const instruction = INSTRUCTIONS[currentLevel];
+    const instruction = INSTRUCTIONS[currentLevel.value];
     if (!instruction) return;
 
     return {
-      message: {
-        role: "user",
-        content: [{ type: "text", text: `[CAVEMAN MODE: ${instruction}]` }],
-        display: false,
-      },
+      message: { role: "user" as const, content: [{ type: "text" as const, text: `[CAVEMAN MODE: ${instruction}]` }], display: false },
     };
   });
 
   pi.on("input", async (event, ctx) => {
     const result = detectCavemanTrigger(event.text);
     if (result) {
-      currentLevel = result.level;
-      persistLevel(currentLevel);
-      ctx.ui.notify(formatLevel(currentLevel), "info");
+      currentLevel.value = result.level;
+      persistLevel(currentLevel.value);
+      ctx.ui.notify(formatLevel(currentLevel.value), "info");
     }
   });
 }
+
+export { formatLevel, detectCavemanTrigger, INSTRUCTIONS };
