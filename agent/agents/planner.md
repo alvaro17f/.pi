@@ -2,7 +2,6 @@
 name: planner
 description: Creates implementation plans from context and requirements
 tools: read, grep, find, ls, write
-model: ollama-cloud/glm-5.1
 thinking: high
 output: plan.md
 defaultReads: context.md

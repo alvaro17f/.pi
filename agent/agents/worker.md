@@ -1,7 +1,6 @@
 ---
 name: worker
 description: General-purpose subagent with full capabilities, isolated context
-model: ollama-cloud/glm-5.1
 defaultReads: context.md, plan.md
 defaultProgress: true
 ---

@@ -2,7 +2,6 @@
 name: frontend-designer
 description: High-end frontend design specialist for distinctive, production-grade interfaces
 tools: read, grep, find, ls, bash, write
-model: ollama-cloud/glm-5.1
 defaultReads: context.md, plan.md
 defaultProgress: true
 ---

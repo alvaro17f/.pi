@@ -2,7 +2,6 @@
 name: scout
 description: Fast codebase recon that returns compressed context for handoff
 tools: read, grep, find, ls, bash, write
-model: ollama-cloud/gemini-3-flash-preview
 output: context.md
 defaultProgress: true
 ---

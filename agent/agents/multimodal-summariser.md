@@ -2,7 +2,6 @@
 name: multimodal-summariser
 description: Summarises images, video, and audio into structured briefs and concise takeaways
 tools: read, find, ls, bash, write
-model: ollama-cloud/gemini-3-flash-preview
 output: summary.md
 ---
 
