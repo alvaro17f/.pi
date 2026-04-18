@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.67.6",
+  "lastChangelogVersion": "0.67.68",
   "defaultProvider": "ollama-cloud",
   "defaultModel": "glm-5.1",
   "theme": "catppuccin-mocha",
@@ -13,10 +13,10 @@
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
+    "npm:@sting8k/pi-vcc",
     "npm:@tintinweb/pi-subagents",
     "npm:@tomooshi/condensed-milk-pi",
     "npm:pi-image-preview",
-    "npm:pi-observational-memory",
     "npm:pi-secret-guard",
     "npm:pi-tool-display"
   ],
