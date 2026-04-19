@@ -19,10 +19,10 @@ const VALID_LEVELS: readonly CavemanLevel[] = ["off", "lite", "full", "ultra"];
 const IS_VALID_LEVEL = (level: string): level is CavemanLevel => VALID_LEVELS.includes(level as CavemanLevel);
 
 const INSTRUCTIONS: Record<CavemanLevel, string> = {
-  off: "",
-  lite: `Caveman Lite Mode: Keep grammar. Drop filler words like "just", "really", "basically", "actually", "simply". Remove pleasantries like "sure", "certainly", "of course", "happy to". Professional but no fluff.`,
-  full: `Caveman Mode: Drop articles (a, an, the). Drop filler (just, really, basically, actually, simply). Drop pleasantries (sure, certainly, of course). Short synonyms (big not extensive, fix not "implement a solution for"). No hedging. Fragments fine. Technical terms stay exact. Code blocks unchanged. Pattern: [thing] [action] [reason]. [next step].`,
-  ultra: `Caveman Ultra Mode: Maximum compression. Telegraphic. Drop almost everything. Technical terms exact. Example: "Inline obj prop → new ref → re-render. useMemo."`,
+  off: "Stop caveman compression. Respond normal, full sentences, no compression.",
+  lite: "Keep grammar. Drop filler words like just, really, basically, actually, simply. Remove pleasantries like sure, certainly, of course, happy to. Professional but no fluff.",
+  full: "Drop articles (a, an, the). Drop filler (just, really, basically, actually, simply). Drop pleasantries (sure, certainly, of course). Short synonyms (big not extensive, fix not implement a solution for). No hedging. Fragments fine. Technical terms stay exact. Code blocks unchanged. Pattern: thing action reason. next step.",
+  ultra: "Maximum compression. Telegraphic. Drop almost everything. Technical terms exact. Example: Inline obj prop → new ref → re-render. useMemo.",
 };
 
 const LEVEL_MESSAGES: Record<CavemanLevel, string> = {
@@ -99,21 +99,10 @@ export default function (pi: ExtensionAPI): void {
 
   pi.on("before_agent_start", async (_event, _ctx) => {
     const instruction = INSTRUCTIONS[currentLevel.value];
-    
-    if (currentLevel.value === "off") {
-      return {
-        message: { 
-          role: "user" as const, 
-          content: [{ type: "text" as const, text: "[CAVEMAN MODE OFF: Stop caveman compression. Respond normal, full sentences, no compression.]" }], 
-          display: false 
-        },
-      };
-    }
-
     if (!instruction) return;
 
     return {
-      message: { role: "user" as const, content: [{ type: "text" as const, text: `[CAVEMAN MODE: ${instruction}]` }], display: false },
+      message: { role: "user" as const, content: [{ type: "text" as const, text: `CAVEMAN MODE ${currentLevel.value.toUpperCase()}: ${instruction}` }], display: false },
     };
   });
 
