@@ -73,7 +73,7 @@ const detectCavemanTrigger = (text: string): { level: CavemanLevel; stopped: boo
 };
 
 const parseLevelArg = (arg: string): CavemanLevel | null => {
-  const cleanArg = arg.split(/\s+/)[0]!.replace(/[^a-z]/g, "");
+  const cleanArg = arg.split(/\s+/)[0]!.toLowerCase();
   return IS_VALID_LEVEL(cleanArg) ? cleanArg : null;
 };
 
@@ -98,9 +98,18 @@ export default function (pi: ExtensionAPI): void {
   });
 
   pi.on("before_agent_start", async (_event, _ctx) => {
-    if (currentLevel.value === "off") return;
-
     const instruction = INSTRUCTIONS[currentLevel.value];
+    
+    if (currentLevel.value === "off") {
+      return {
+        message: { 
+          role: "user" as const, 
+          content: [{ type: "text" as const, text: "[CAVEMAN MODE OFF: Stop caveman compression. Respond normal, full sentences, no compression.]" }], 
+          display: false 
+        },
+      };
+    }
+
     if (!instruction) return;
 
     return {
