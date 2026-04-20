@@ -1,5 +1,5 @@
 /**
- * pi-auto-updater - fastest
+ * auto-updater - fastest
  * Checks on startup, pulls if behind, reloads.
  */
 
