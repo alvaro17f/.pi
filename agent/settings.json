@@ -18,6 +18,7 @@
     "npm:@tomooshi/condensed-milk-pi",
     "npm:pi-btw",
     "npm:pi-image-preview",
+    "npm:pi-schedule-prompt",
     "npm:pi-secret-guard",
     "npm:pi-tool-display"
   ],
