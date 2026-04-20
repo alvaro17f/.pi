@@ -24,7 +24,7 @@
   ],
   "extensionSettings": {
     "safeGuard": false,
-    "caveman": "ultra",
+    "caveman": "full",
     "notifications": true
   }
 }
