@@ -97,14 +97,17 @@ export default function (pi: ExtensionAPI): void {
     },
   });
 
-  pi.on("before_agent_start", async (_event, _ctx) => {
+  const injectCaveman = () => {
     const instruction = INSTRUCTIONS[currentLevel.value];
     if (!instruction) return;
-
     return {
       message: { role: "user" as const, content: [{ type: "text" as const, text: `CAVEMAN MODE ${currentLevel.value.toUpperCase()}: ${instruction}` }], display: false },
     };
-  });
+  };
+
+
+  pi.on("session_start", async () => injectCaveman());
+  pi.on("before_agent_start", async () => injectCaveman());
 
   pi.on("input", async (event, ctx) => {
     const result = detectCavemanTrigger(event.text);
