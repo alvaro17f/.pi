@@ -4,10 +4,11 @@
   "defaultModel": "glm-5.1",
   "theme": "catppuccin-mocha",
   "enableInstallTelemetry": false,
-  "quietStartup": true,
+  "quietStartup": false,
   "hideThinkingBlock": false,
   "defaultThinkingLevel": "medium",
   "packages": [
+    "git:github.com/visua1hue/pi-pane",
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
