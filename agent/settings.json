@@ -1,12 +1,12 @@
 {
-  "lastChangelogVersion": "0.67.68",
+  "lastChangelogVersion": "0.68.0",
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "glm-5.1",
+  "defaultModel": "kimi-k2.6",
   "theme": "catppuccin-mocha",
   "enableInstallTelemetry": false,
   "quietStartup": false,
   "hideThinkingBlock": false,
-  "defaultThinkingLevel": "medium",
+  "defaultThinkingLevel": "low",
   "packages": [
     "git:github.com/visua1hue/pi-pane",
     "npm:@ahkohd/oyo",
