@@ -14,11 +14,11 @@
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
-    "npm:@sting8k/pi-vcc",
     "npm:@tintinweb/pi-subagents",
-    "npm:@tomooshi/condensed-milk-pi",
     "npm:pi-btw",
     "npm:pi-image-preview",
+    "npm:pi-observational-memory",
+    "npm:pi-rtk-optimizer",
     "npm:pi-schedule-prompt",
     "npm:pi-secret-guard",
     "npm:pi-tool-display"
