@@ -39,44 +39,56 @@ function collectTotals(ctx: Pick<ExtensionContext, "sessionManager">): UsageTota
   return totals;
 }
 
-export default function (pi: ExtensionAPI) {
-  let enabled = true;
-  let sessionStart = Date.now();
-  let usageTotals: UsageTotals = { input: 0, output: 0 };
-  let footerData: ReadonlyFooterDataProvider | null = null;
-  let tuiRef: { requestRender(): void } | null = null;
-  let agentStartMs = 0;
-  let lastTps = 0;
-  let lastQueryTime = 0;
-  let disposeFooter: (() => void) | null = null;
+// State object (const, but properties mutable)
+const state = {
+  enabled: true,
+  sessionStart: Date.now(),
+  usageTotals: { input: 0, output: 0 } as UsageTotals,
+  footerData: null as ReadonlyFooterDataProvider | null,
+  tuiRef: null as { requestRender(): void } | null,
+  currentModel: null as { id: string; provider?: string } | null,
+  currentCwd: "",
+  agentStartMs: 0,
+  lastTps: 0,
+  lastQueryTime: 0,
+  disposeFooter: null as (() => void) | null,
+  active: false,
+};
 
+export default function (pi: ExtensionAPI) {
   function resetRefs() {
-    footerData = null;
-    tuiRef = null;
-    agentStartMs = 0;
-    lastTps = 0;
-    lastQueryTime = 0;
+    state.footerData = null;
+    state.tuiRef = null;
+    state.agentStartMs = 0;
+    state.lastTps = 0;
+    state.lastQueryTime = 0;
+    state.active = false;
   }
 
   function clearState() {
-    if (disposeFooter) {
-      const d = disposeFooter;
-      disposeFooter = null;
+    if (state.disposeFooter) {
+      const d = state.disposeFooter;
+      state.disposeFooter = null;
       d();
     } else {
       resetRefs();
     }
   }
 
+  pi.on("session_start", (event) => {
+    state.currentCwd = (event as unknown as { cwd?: string }).cwd ?? "";
+    state.currentModel = null;
+  });
+
   pi.on("agent_start", () => {
-    agentStartMs = Date.now();
-    lastTps = 0;
-    lastQueryTime = 0;
-    tuiRef?.requestRender();
+    state.agentStartMs = Date.now();
+    state.lastTps = 0;
+    state.lastQueryTime = 0;
+    state.tuiRef?.requestRender();
   });
 
   pi.on("agent_end", (event) => {
-    if (agentStartMs === 0) return;
+    if (state.agentStartMs === 0) return;
     let output = 0;
     for (const m of event.messages) {
       if (m.role === "assistant") {
@@ -84,57 +96,65 @@ export default function (pi: ExtensionAPI) {
         if (Number.isFinite(out)) output += out;
       }
     }
-    const elapsed = Date.now() - agentStartMs;
+    const elapsed = Date.now() - state.agentStartMs;
     if (elapsed > 0 && output > 0) {
-      lastTps = output / (elapsed / 1000);
-      lastQueryTime = elapsed;
+      state.lastTps = output / (elapsed / 1000);
+      state.lastQueryTime = elapsed;
     }
-    agentStartMs = 0;
-    tuiRef?.requestRender();
+    state.agentStartMs = 0;
+    state.tuiRef?.requestRender();
   });
 
   function installFooter(ctx: ExtensionContext) {
-    usageTotals = collectTotals(ctx);
+    state.currentCwd = ctx.cwd;
+    state.currentModel = ctx.model as { id: string; provider?: string } | null ?? null;
+    state.usageTotals = collectTotals(ctx);
 
     ctx.ui.setFooter((tui, theme, fd) => {
-      footerData = fd;
-      tuiRef = tui;
+      state.footerData = fd;
+      state.tuiRef = tui;
       const unsub = fd.onBranchChange(() => tui.requestRender());
       const timer = setInterval(() => tui.requestRender(), 30000);
-      disposeFooter = () => {
+      state.disposeFooter = () => {
         unsub();
         clearInterval(timer);
         resetRefs();
       };
+      state.active = true;
 
       return {
-        dispose: disposeFooter,
+        dispose: state.disposeFooter,
         invalidate() {},
         render(width: number): string[] {
-          const usage = ctx.getContextUsage();
-          const pct = usage?.percent ?? 0;
+          let pct = 0;
+          try {
+            pct = ctx.getContextUsage()?.percent ?? 0;
+          } catch {
+            pct = 0;
+          }
           const pctColor = pct > 75 ? "error" : pct > 50 ? "warning" : "success";
 
           const tokenStats =
-            theme.fg("accent", `${fmt(usageTotals.input)}/${fmt(usageTotals.output)}`) +
+            theme.fg("accent", `${fmt(state.usageTotals.input)}/${fmt(state.usageTotals.output)}`) +
             " " +
             theme.fg(pctColor, `${pct.toFixed(0)}%`);
-          const elapsed = theme.fg("dim", `⏱${formatElapsed(Date.now() - sessionStart)}`);
+          const elapsed = theme.fg("dim", `⏱${formatElapsed(Date.now() - state.sessionStart)}`);
 
-          const parts = ctx.cwd.split("/");
-          const short = parts.length > 2 ? parts.slice(-2).join("/") : ctx.cwd;
+          const cwd = state.currentCwd || ctx.cwd;
+          const parts = cwd.split("/");
+          const short = parts.length > 2 ? parts.slice(-2).join("/") : cwd;
           const cwdStr = theme.fg("muted", `⌂ ${short}`);
 
           const branch = fd.getGitBranch();
           const branchStr = branch ? theme.fg("accent", `⎇ ${branch}`) : "";
 
-          const thinking = pi.getThinkingLevel();
+          const thinking = state.active ? pi.getThinkingLevel() : "off";
           const thinkColor =
             thinking === "high" ? "warning" :
             thinking === "medium" ? "accent" :
             thinking === "low" ? "dim" : "muted";
-          const modelId = ctx.model?.id || "no-model";
-          const provider = (ctx.model as { provider?: string })?.provider || "";
+          const modelId = state.currentModel?.id ?? ctx.model?.id ?? "no-model";
+          const provider = state.currentModel?.provider ?? (ctx.model as { provider?: string })?.provider ?? "";
           const modelStr = provider
             ? `${theme.fg(thinkColor, "◆")} ${theme.fg("dim", provider)}${theme.fg("dim", "/")}${theme.fg("accent", modelId)}`
             : `${theme.fg(thinkColor, "◆")} ${theme.fg("accent", modelId)}`;
@@ -143,9 +163,9 @@ export default function (pi: ExtensionAPI) {
           const statusStr = statuses.size > 0 ? theme.fg("dim", Array.from(statuses.values()).join(" | ")) : "";
 
           let tpsStr = "";
-          if (lastTps > 0) tpsStr = theme.fg("success", `${lastTps.toFixed(1)} tok/s`);
+          if (state.lastTps > 0) tpsStr = theme.fg("success", `${state.lastTps.toFixed(1)} tok/s`);
           let queryTimeStr = "";
-          if (lastQueryTime > 0) queryTimeStr = theme.fg("dim", formatElapsed(lastQueryTime));
+          if (state.lastQueryTime > 0) queryTimeStr = theme.fg("dim", formatElapsed(state.lastQueryTime));
 
           const sep = theme.fg("dim", " | ");
           const leftParts = [modelStr, tokenStats, elapsed, cwdStr];
@@ -163,13 +183,13 @@ export default function (pi: ExtensionAPI) {
   }
 
   pi.on("session_start", async (event, ctx) => {
-    if (!enabled) return;
+    if (!state.enabled) return;
     clearState();
     if (event.reason === "new" || event.reason === "fork" || event.reason === "startup") {
-      sessionStart = Date.now();
-      lastTps = 0;
-      lastQueryTime = 0;
-      agentStartMs = 0;
+      state.sessionStart = Date.now();
+      state.lastTps = 0;
+      state.lastQueryTime = 0;
+      state.agentStartMs = 0;
     }
     installFooter(ctx);
   });
@@ -179,42 +199,43 @@ export default function (pi: ExtensionAPI) {
   });
 
   pi.on("session_switch", (event, ctx) => {
-    usageTotals = collectTotals(ctx);
+    state.usageTotals = collectTotals(ctx);
     if (event.reason === "new") {
-      sessionStart = Date.now();
-      lastTps = 0;
-      lastQueryTime = 0;
-      agentStartMs = 0;
+      state.sessionStart = Date.now();
+      state.lastTps = 0;
+      state.lastQueryTime = 0;
+      state.agentStartMs = 0;
     }
-    tuiRef?.requestRender();
+    state.tuiRef?.requestRender();
   });
 
   pi.on("session_tree", (_event, ctx) => {
-    usageTotals = collectTotals(ctx);
-    tuiRef?.requestRender();
+    state.usageTotals = collectTotals(ctx);
+    state.tuiRef?.requestRender();
   });
 
   pi.on("session_fork", (_event, ctx) => {
-    usageTotals = collectTotals(ctx);
-    tuiRef?.requestRender();
+    state.usageTotals = collectTotals(ctx);
+    state.tuiRef?.requestRender();
   });
 
   pi.on("turn_end", (event) => {
     if (event.message.role === "assistant") {
-      accumulateUsage(usageTotals, event.message as AssistantMessage);
-      tuiRef?.requestRender();
+      accumulateUsage(state.usageTotals, event.message as AssistantMessage);
+      state.tuiRef?.requestRender();
     }
   });
 
-  pi.on("model_select", () => {
-    tuiRef?.requestRender();
+  pi.on("model_select", (event) => {
+    state.currentModel = event.model as { id: string; provider?: string } | null ?? null;
+    state.tuiRef?.requestRender();
   });
 
   pi.registerCommand("footer", {
     description: "Toggle custom footer",
     handler: async (_args, ctx) => {
-      enabled = !enabled;
-      if (enabled) {
+      state.enabled = !state.enabled;
+      if (state.enabled) {
         clearState();
         installFooter(ctx);
         ctx.ui.notify("✓ custom footer", "success");
