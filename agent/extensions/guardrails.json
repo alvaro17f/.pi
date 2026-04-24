@@ -1,5 +1,5 @@
 {
-  "enabled": false,
+  "enabled": true,
   "applyBuiltinDefaults": true,
   "version": "0.9.0-20260327",
   "onboarding": {
