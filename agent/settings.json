@@ -1,16 +1,21 @@
 {
-  "lastChangelogVersion": "0.68.0",
+  "lastChangelogVersion": "0.70.2",
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "kimi-k2.6",
+  "defaultModel": "deepseek-v4-flash",
   "theme": "catppuccin-mocha",
   "enableInstallTelemetry": false,
   "quietStartup": false,
   "hideThinkingBlock": false,
-  "defaultThinkingLevel": "low",
+  "defaultThinkingLevel": "medium",
+  "terminal": {
+    "showTerminalProgress": true
+  },
   "packages": [
+    "npm:@mariozechner/pi-coding-agent",
     "git:github.com/visua1hue/pi-pane",
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
+    "npm:@aliou/pi-guardrails",
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
@@ -20,12 +25,9 @@
     "npm:pi-image-preview",
     "npm:pi-observational-memory",
     "npm:pi-rtk-optimizer",
-    "npm:pi-schedule-prompt",
-    "npm:pi-secret-guard",
     "npm:pi-tool-display"
   ],
   "extensionSettings": {
-    "safeGuard": false,
     "caveman": "full",
     "notifications": true
   }
