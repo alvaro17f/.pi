@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.70.2",
-  "defaultProvider": "opencode-go",
-  "defaultModel": "kimi-k2.6",
+  "defaultProvider": "ollama-cloud",
+  "defaultModel": "deepseek-v4-pro",
   "theme": "catppuccin-mocha",
   "enableInstallTelemetry": false,
   "quietStartup": false,
@@ -19,11 +19,10 @@
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
+    "npm:@sting8k/pi-vcc",
     "npm:@tintinweb/pi-subagents",
     "npm:pi-btw",
-    "npm:pi-code-rollback",
     "npm:pi-image-preview",
-    "npm:pi-observational-memory",
     "npm:pi-rtk-optimizer",
     "npm:pi-tool-display"
   ],

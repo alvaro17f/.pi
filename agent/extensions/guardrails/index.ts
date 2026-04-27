@@ -1,12 +1,19 @@
-import { readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
 import { getAgentDir } from "@mariozechner/pi-coding-agent";
 
 const CONFIG_PATH = join(getAgentDir(), "extensions/guardrails.json");
 
+const DEFAULT_CONFIG: { enabled: boolean } = { enabled: true };
+
 function readConfig(): { enabled: boolean } {
-  return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+  if (!existsSync(CONFIG_PATH)) return { ...DEFAULT_CONFIG };
+  try {
+    return JSON.parse(readFileSync(CONFIG_PATH, "utf-8"));
+  } catch {
+    return { ...DEFAULT_CONFIG };
+  }
 }
 
 function toggleEnabled(): boolean {
