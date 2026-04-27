@@ -20,8 +20,10 @@
     "npm:@lpirito/pi-diffloop",
     "npm:@sting8k/pi-vcc",
     "npm:@tintinweb/pi-subagents",
+    "npm:context-mode",
     "npm:pi-btw",
     "npm:pi-image-preview",
+    "npm:pi-mcp-adapter",
     "npm:pi-rtk-optimizer",
     "npm:pi-tool-display"
   ],
