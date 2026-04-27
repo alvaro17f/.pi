@@ -25,6 +25,7 @@
     "npm:pi-image-preview",
     "npm:pi-mcp-adapter",
     "npm:pi-rtk-optimizer",
+    "npm:pi-secret-guard",
     "npm:pi-tool-display"
   ],
   "extensionSettings": {
