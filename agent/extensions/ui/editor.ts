@@ -115,9 +115,8 @@ export class PiPaneEditor extends CustomEditor {
     }
 
     this.pendingQuitUntil = now + DOUBLE_PRESS_WINDOW_MS;
-    this.showHint(
-      `${formatKey(this.piKeybindings.getKeys("app.clear")[0])} to quit`,
-    );
+    const keys = this.piKeybindings.getKeys("app.clear");
+    this.showHint(`${formatKey(keys.length > 0 ? keys[0] : undefined)} to quit`);
   }
 
   // ── Render ────────────────────────────────────────────────────────
@@ -131,9 +130,9 @@ export class PiPaneEditor extends CustomEditor {
         this.cachedPalette = p;
         this.cachedPaletteTheme = theme;
       }
-      const cw = width - PAD_X * 2;
-      const inner = cw - 2;
       const rightPad = 1;
+      const cw = Math.max(width - PAD_X * 2, PI_WIDTH + rightPad + 2);
+      const inner = cw - 2;
       const superLines = super.render(cw - PI_WIDTH - rightPad);
 
       let bottomIdx = superLines.length - 1;
@@ -190,8 +189,9 @@ export class PiPaneEditor extends CustomEditor {
       const raw = [topLine, ...midLines, ...spacer, ...autoLines, botLine];
 
       const pad = " ".repeat(PAD_X);
+      const resetBg = RESET + p.panelBg;
       const wrap = (line: string): string => {
-        const patched = line.replaceAll(RESET, RESET + p.panelBg);
+        const patched = line.replaceAll(RESET, resetBg);
         return p.panelBg + pad + patched + pad + RESET;
       };
 

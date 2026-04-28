@@ -28,7 +28,8 @@ if (!g[PATCHED_LOG]) {
       if (m) {
         const raw = m[1].replace(/\s*\(Ctrl\+\w[\w\s]*\)/gi, "");
         g[CAPTURED_MODELS] = raw.split(",").map((s: string) => s.trim()).filter(Boolean);
-        return; // suppress
+        console.log = origLog; // restore — models captured, no more interception needed
+        return;
       }
     }
     origLog.apply(console, args);
@@ -71,7 +72,8 @@ function suppressStdout(): void {
 }
 
 // Activate on initial startup — skip for non-interactive CLI modes
-if (!/--help|-h|--version|-v|install|uninstall|update|doctor/.test(process.argv.slice(2).join(" "))) {
+const cliArgs = process.argv.slice(2);
+if (!cliArgs.some(a => /^(--help|-h|--version|-v|install|uninstall|update|doctor)$/i.test(a))) {
   suppressStdout();
 }
 

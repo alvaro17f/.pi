@@ -6,6 +6,7 @@ type UserMsgCtor = typeof UserMessageComponent & { [PATCHED]?: boolean };
 // ── Constants ──────────────────────────────────────────────────────
 
 const PATCHED = Symbol.for("pi-pane:userMsgPatched");
+const CACHED_IMPORT = Symbol.for("pi-pane:cachedImport");
 // Match OSC133 B (zone end) or C (zone final). v0.67 moved these from line
 // tail to line head — we strip from wherever they sit and re-emit at the end.
 const OSC133_RE = /\x1b\]133;[BC]\x07/g;
@@ -41,7 +42,10 @@ export function patchUserMessage(
   lastBg = p.panelBg;
   setThemeBg(theme, "userMessageBg", lastBg);
 
-  import("@mariozechner/pi-coding-agent").then(
+  const g = globalThis as any;
+  const importPromise: Promise<any> =
+    g[CACHED_IMPORT] ?? (g[CACHED_IMPORT] = import("@mariozechner/pi-coding-agent"));
+  importPromise.then(
     ({ UserMessageComponent }: { UserMessageComponent: UserMsgCtor }) => {
       if (UserMessageComponent[PATCHED]) return;
 
