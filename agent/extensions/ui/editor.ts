@@ -33,6 +33,8 @@ export class PiPaneEditor extends CustomEditor {
   private hintTimer: ReturnType<typeof setTimeout> | undefined;
   private hintMessage: string | undefined;
   private pendingQuitUntil = 0;
+  private cachedPalette: import("./visual.js").PanePalette | undefined;
+  private cachedPaletteTheme: Theme | undefined;
 
   constructor(
     tui: TUI,
@@ -122,7 +124,13 @@ export class PiPaneEditor extends CustomEditor {
 
   override render(width: number): string[] {
     try {
-      const p = resolvePalette(this.getTheme());
+      const theme = this.getTheme();
+      let p = this.cachedPalette;
+      if (!p || this.cachedPaletteTheme !== theme) {
+        p = resolvePalette(theme);
+        this.cachedPalette = p;
+        this.cachedPaletteTheme = theme;
+      }
       const cw = width - PAD_X * 2;
       const inner = cw - 2;
       const rightPad = 1;

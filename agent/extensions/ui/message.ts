@@ -77,8 +77,8 @@ export function patchUserMessage(
         if (bg !== lastBg) { setThemeBg(currentTheme, "userMessageBg", bg); lastBg = bg; }
 
         const idx = instanceIndex.get(this);
-        const elapsed = idx !== undefined ? responseTimes[idx] : 0;
-        const hasTime = idx !== undefined;
+        const elapsed = (idx !== undefined && idx < responseTimes.length) ? responseTimes[idx] : 0;
+        const hasTime = idx !== undefined && idx < responseTimes.length;
 
         const contentWidth = width - TIME_COL;
         const lines: string[] = origRender.call(this, contentWidth);
