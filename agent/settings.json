@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.70.5",
+  "lastChangelogVersion": "0.70.6",
   "defaultProvider": "ollama-cloud",
   "defaultModel": "deepseek-v4-pro",
   "theme": "catppuccin-mocha",
@@ -11,7 +11,6 @@
     "showTerminalProgress": true
   },
   "packages": [
-    "git:github.com/visua1hue/pi-pane",
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
