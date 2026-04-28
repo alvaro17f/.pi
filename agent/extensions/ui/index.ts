@@ -1,11 +1,15 @@
-/**
- * Header extension — exact pi-pane header (logo + startup sections).
- * Adapted from https://github.com/visua1hue/pi-pane
- */
-
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
-import { Spacer, type TUI } from "@mariozechner/pi-tui";
+import type {
+  ExtensionAPI,
+  Theme,
+  KeybindingsManager,
+} from "@mariozechner/pi-coding-agent";
+import { Spacer, type TUI, type EditorTheme } from "@mariozechner/pi-tui";
+import { PiPaneEditor } from "./editor.js";
+import { patchUserMessage } from "./message.js";
 import { renderHeader, patchStartupListing, type ListingRef } from "./startup.js";
+
+// Survives module reloads — Symbol.for() returns the same ref
+const REAL_SET_EDITOR = Symbol.for("pi-pane:realSetEditor");
 
 const g = globalThis as any;
 
@@ -32,11 +36,18 @@ if (!g[PATCHED_LOG]) {
 }
 
 // ── Suppress render frames (startup flash + /reload loader) ─────────────────
+// Used in two scenarios:
+// 1. Initial startup: pi renders built-in header before extensions load
+// 2. /reload: pi shows BorderedLoader before extensions re-initialize
+//
+// Pure ANSI control sequences (cursor hide, bracketed paste, kitty protocol)
+// pass through so terminal setup is preserved. Restored in session_start
+// before a forced full redraw. Safety timeout auto-restores after 5s.
 const STDOUT_RESTORE = Symbol.for("pi-pane:stdoutRestore");
 const ANSI_SEQ_RE = /\x1b(?:\[[^a-zA-Z~]*[a-zA-Z~]|\][^\x07]*\x07)/g;
 
 function suppressStdout(): void {
-  if (g[STDOUT_RESTORE]) return;
+  if (g[STDOUT_RESTORE]) return; // already active
   const origWrite = process.stdout.write.bind(process.stdout);
 
   process.stdout.write = function (chunk: any, ...args: any[]): boolean {
@@ -50,7 +61,7 @@ function suppressStdout(): void {
   const safetyTimer = setTimeout(() => {
     process.stdout.write = origWrite;
     delete g[STDOUT_RESTORE];
-  }, 5000);
+  }, 2000);
 
   g[STDOUT_RESTORE] = () => {
     clearTimeout(safetyTimer);
@@ -59,34 +70,52 @@ function suppressStdout(): void {
   };
 }
 
-// Don't suppress stdout for non-interactive CLI modes (--help, --version, install, etc.)
-const NON_INTERACTIVE_FLAGS = /--help|-h|--version|-v|install|uninstall|update|doctor|login|logout|whoami|config|init|publish/;
-if (!NON_INTERACTIVE_FLAGS.test(process.argv.slice(2).join(" "))) {
+// Activate on initial startup — skip for non-interactive CLI modes
+if (!/--help|-h|--version|-v|install|uninstall|update|doctor/.test(process.argv.slice(2).join(" "))) {
   suppressStdout();
 }
 
-export default function headerExtension(pi: ExtensionAPI) {
+export default function piPaneExtension(pi: ExtensionAPI) {
+  const responseTimes: number[] = [];
+  let turnStartMs = 0;
+
+  pi.on("turn_start", () => {
+    turnStartMs = Date.now();
+    responseTimes.push(0);
+  });
+
+  pi.on("turn_end", () => {
+    if (responseTimes.length > 0) {
+      responseTimes[responseTimes.length - 1] = Date.now() - turnStartMs;
+    }
+  });
+
   pi.on("session_start", (_event, ctx) => {
     if (!ctx.hasUI) return;
 
+    const ui = ctx.ui as any;
+    const realSetEditor: (factory: any) => void =
+      ui[REAL_SET_EDITOR] ?? ctx.ui.setEditorComponent;
+    ui[REAL_SET_EDITOR] = realSetEditor;
+
+    const getTheme = () => ui.theme as Theme;
+
+    ctx.ui.setWorkingMessage("\u200b");
+    patchUserMessage(getTheme, responseTimes);
+
+    // Custom header + intercept TUI ref for listing patch
     const capturedModels: string[] | undefined = g[CAPTURED_MODELS];
     const initialSections = capturedModels?.length
       ? [{ name: "Models" as const, items: capturedModels }]
       : [];
-    const listingRef: ListingRef = {
-      sections: initialSections,
-      frame: 0,
-      revealed: false,
-      revealedAt: 0,
-      scaffoldAt: 0,
-      settled: false,
-    };
+    const listingRef: ListingRef = { sections: initialSections, frame: 0, revealed: false, revealedAt: 0, scaffoldAt: 0, settled: false };
     let tuiRef: TUI | undefined;
-
     ctx.ui.setHeader((tui, theme) => {
       tuiRef = tui;
 
-      // Neuter built-in header so /reload doesn't flash keybinding hints
+      // Neuter the built-in header so /reload doesn't flash keybinding hints.
+      // On reset, pi restores builtInHeader into headerContainer — if its
+      // render returns empty, the flash is invisible.
       const hc = tui.children[0] as any;
       if (hc?.children) {
         for (const child of hc.children) {
@@ -97,7 +126,6 @@ export default function headerExtension(pi: ExtensionAPI) {
       }
 
       patchStartupListing(tui, theme, listingRef);
-
       return {
         _piPane: true,
         render: (w: number) => renderHeader(theme, listingRef, w),
@@ -106,20 +134,24 @@ export default function headerExtension(pi: ExtensionAPI) {
       } as any;
     });
 
-    // Restore stdout + force full redraw
+    // Restore stdout and force full redraw — the TUI's diff state is stale
+    // because suppressed renders updated internal tracking without writing.
     const restoreStdout: (() => void) | undefined = g[STDOUT_RESTORE];
     if (restoreStdout) {
       restoreStdout();
       if (tuiRef) (tuiRef as any).requestRender(true);
     }
-  });
 
-  // Command to restore built-in header
-  pi.registerCommand("builtin-header", {
-    description: "Restore built-in pi header",
-    handler: async (_args, cmdCtx) => {
-      cmdCtx.ui.setHeader(undefined);
-      cmdCtx.ui.notify("Built-in header restored", "info");
-    },
+    realSetEditor(
+      (tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) =>
+        new PiPaneEditor(tui, theme, keybindings, {
+          getTheme,
+          isIdle: () => ctx.isIdle(),
+          shutdown: () => ctx.shutdown(),
+        }),
+    );
+
+    // Prevent other extensions from replacing the editor
+    ctx.ui.setEditorComponent = () => {};
   });
 }
