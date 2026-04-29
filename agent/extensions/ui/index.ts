@@ -102,7 +102,7 @@ export default function piPaneExtension(pi: ExtensionAPI) {
 
     const getTheme = () => ui.theme as Theme;
 
-    ctx.ui.setWorkingMessage("\u200b");
+    ctx.ui.setWorkingMessage("");
     patchUserMessage(getTheme, responseTimes);
 
     // Custom header + intercept TUI ref for listing patch
