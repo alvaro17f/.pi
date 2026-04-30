@@ -90,7 +90,7 @@ const SUBCOMMANDS: AutocompleteItem[] = [
 
 // ── Extension entry ──────────────────────────────────────────────────
 
-export default function (pi: ExtensionAPI) {
+export default function (pi: ExtensionAPI): void {
   pi.on("agent_end", async (event) => {
     if (!getExtSetting("notifications", true)) return;
     const lastText = extractLastAssistantText(event.messages ?? []);

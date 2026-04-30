@@ -1,6 +1,6 @@
 const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
 
-export const isParentBorder = (s: string) => {
+export const isParentBorder = (s: string): boolean => {
   const clean = stripAnsi(s);
   return clean.length > 0 && clean[0] === "─";
 };

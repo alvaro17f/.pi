@@ -77,7 +77,7 @@ if (!cliArgs.some(a => /^(--help|-h|--version|-v|install|uninstall|update|doctor
   suppressStdout();
 }
 
-export default function piPaneExtension(pi: ExtensionAPI) {
+export default function piPaneExtension(pi: ExtensionAPI): void {
   const responseTimes: number[] = [];
   const turnStartMs = { value: 0 };
 

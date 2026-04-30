@@ -55,7 +55,7 @@ const state = {
   active: false,
 };
 
-export default function (pi: ExtensionAPI) {
+export default function (pi: ExtensionAPI): void {
   function resetRefs() {
     state.footerData = null;
     state.tuiRef = null;
