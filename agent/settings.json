@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.70.6",
+  "lastChangelogVersion": "0.71.0",
   "defaultProvider": "ollama-cloud",
   "defaultModel": "deepseek-v4-pro",
   "theme": "catppuccin-mocha",
@@ -21,7 +21,6 @@
     "npm:context-mode",
     "npm:pi-ask-mode",
     "npm:pi-btw",
-    "npm:pi-image-preview",
     "npm:pi-mcp-adapter",
     "npm:pi-rtk-optimizer",
     "npm:pi-secret-guard",
