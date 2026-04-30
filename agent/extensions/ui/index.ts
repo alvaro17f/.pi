@@ -79,16 +79,16 @@ if (!cliArgs.some(a => /^(--help|-h|--version|-v|install|uninstall|update|doctor
 
 export default function piPaneExtension(pi: ExtensionAPI) {
   const responseTimes: number[] = [];
-  let turnStartMs = 0;
+  const turnStartMs = { value: 0 };
 
   pi.on("turn_start", () => {
-    turnStartMs = Date.now();
+    turnStartMs.value = Date.now();
     responseTimes.push(0);
   });
 
   pi.on("turn_end", () => {
     if (responseTimes.length > 0) {
-      responseTimes[responseTimes.length - 1] = Date.now() - turnStartMs;
+      responseTimes[responseTimes.length - 1] = Date.now() - turnStartMs.value;
     }
   });
 
@@ -111,9 +111,9 @@ export default function piPaneExtension(pi: ExtensionAPI) {
       ? [{ name: "Models" as const, items: capturedModels }]
       : [];
     const listingRef: ListingRef = { sections: initialSections, frame: 0, revealed: false, revealedAt: 0, scaffoldAt: 0, settled: false };
-    let tuiRef: TUI | undefined;
+    const tuiRef = { current: undefined as TUI | undefined };
     ctx.ui.setHeader((tui, theme) => {
-      tuiRef = tui;
+      tuiRef.current = tui;
 
       // Neuter the built-in header so /reload doesn't flash keybinding hints.
       // On reset, pi restores builtInHeader into headerContainer — if its
@@ -141,7 +141,7 @@ export default function piPaneExtension(pi: ExtensionAPI) {
     const restoreStdout: (() => void) | undefined = g[STDOUT_RESTORE];
     if (restoreStdout) {
       restoreStdout();
-      if (tuiRef) (tuiRef as any).requestRender(true);
+      if (tuiRef.current) (tuiRef.current as any).requestRender(true);
     }
 
     realSetEditor(

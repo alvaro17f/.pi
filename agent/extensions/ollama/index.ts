@@ -283,10 +283,9 @@ async function fetchCloudModels(ctx: ExtensionCommandContext): Promise<Record<st
   }
 
   // 1. GET /v1/models
-  let res: Response;
-  try {
-    res = await fetchT(`${CLOUD_BASE}/v1/models`, { headers: { Authorization: `Bearer ${apiKey}` } });
-  } catch {
+  const res = await fetchT(`${CLOUD_BASE}/v1/models`, { headers: { Authorization: `Bearer ${apiKey}` } })
+    .catch((): null => null);
+  if (res === null) {
     ctx.ui.notify("Cannot reach Ollama Cloud", "error");
     return {};
   }

@@ -124,23 +124,18 @@ export class PiPaneEditor extends CustomEditor {
   override render(width: number): string[] {
     try {
       const theme = this.getTheme();
-      let p = this.cachedPalette;
-      if (!p || this.cachedPaletteTheme !== theme) {
-        p = resolvePalette(theme);
-        this.cachedPalette = p;
+      if (!this.cachedPalette || this.cachedPaletteTheme !== theme) {
+        this.cachedPalette = resolvePalette(theme);
         this.cachedPaletteTheme = theme;
       }
+      const p = this.cachedPalette!;
       const rightPad = 1;
       const cw = Math.max(width - PAD_X * 2, PI_WIDTH + rightPad + 2);
       const inner = cw - 2;
       const superLines = super.render(cw - PI_WIDTH - rightPad);
 
-      let bottomIdx = superLines.length - 1;
-      for (let i = superLines.length - 1; i >= 1; i--) {
-        if (isParentBorder(superLines[i]!)) {
-          bottomIdx = i;
-        }
-      }
+      const foundIdx = superLines.findIndex((line, i) => i >= 1 && isParentBorder(line!));
+      const bottomIdx = foundIdx !== -1 ? foundIdx : superLines.length - 1;
       const contentLines = superLines.slice(1, bottomIdx);
       const autoLines = superLines.slice(bottomIdx + 1).map(
         (line) =>

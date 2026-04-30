@@ -1,4 +1,4 @@
-export const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
+const stripAnsi = (s: string) => s.replace(/\x1b\[[0-9;]*m/g, "");
 
 export const isParentBorder = (s: string) => {
   const clean = stripAnsi(s);

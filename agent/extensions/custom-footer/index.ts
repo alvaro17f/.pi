@@ -89,13 +89,12 @@ export default function (pi: ExtensionAPI) {
 
   pi.on("agent_end", (event) => {
     if (state.agentStartMs === 0) return;
-    let output = 0;
-    for (const m of event.messages) {
-      if (m.role === "assistant") {
+    const output = event.messages
+      .filter((m) => m.role === "assistant")
+      .reduce((sum, m) => {
         const out = Number((m as AssistantMessage).usage?.output);
-        if (Number.isFinite(out)) output += out;
-      }
-    }
+        return Number.isFinite(out) ? sum + out : sum;
+      }, 0);
     const elapsed = Date.now() - state.agentStartMs;
     if (elapsed > 0 && output > 0) {
       state.lastTps = output / (elapsed / 1000);
@@ -126,12 +125,7 @@ export default function (pi: ExtensionAPI) {
         dispose: state.disposeFooter,
         invalidate() {},
         render(width: number): string[] {
-          let pct = 0;
-          try {
-            pct = ctx.getContextUsage()?.percent ?? 0;
-          } catch {
-            pct = 0;
-          }
+          const pct = (() => { try { return ctx.getContextUsage()?.percent ?? 0; } catch { return 0; } })();
           const pctColor = pct > 75 ? "error" : pct > 50 ? "warning" : "success";
 
           const tokenStats =
@@ -162,10 +156,8 @@ export default function (pi: ExtensionAPI) {
           const statuses = fd.getExtensionStatuses();
           const statusStr = statuses.size > 0 ? theme.fg("dim", Array.from(statuses.values()).join(" | ")) : "";
 
-          let tpsStr = "";
-          if (state.lastTps > 0) tpsStr = theme.fg("success", `${state.lastTps.toFixed(1)} tok/s`);
-          let queryTimeStr = "";
-          if (state.lastQueryTime > 0) queryTimeStr = theme.fg("dim", formatElapsed(state.lastQueryTime));
+          const tpsStr = state.lastTps > 0 ? theme.fg("success", `${state.lastTps.toFixed(1)} tok/s`) : "";
+          const queryTimeStr = state.lastQueryTime > 0 ? theme.fg("dim", formatElapsed(state.lastQueryTime)) : "";
 
           const sep = theme.fg("dim", " | ");
           const leftParts = [modelStr, tokenStats, elapsed, cwdStr];

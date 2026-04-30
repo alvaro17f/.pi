@@ -59,26 +59,18 @@ const LOGO_SETTLE_FRAME = 70;
 
 function getShinedLogo(frame: number): string[] {
   if (!TRUECOLOR) return LOGO;
-
-  return LOGO.map((line, y) => {
-    let result = "";
-    for (let x = 0; x < line.length; x++) {
-      const char = line[x];
-      if (char === " ") { result += " "; continue; }
-
-      // Diagonal stagger: top-left chars appear first
+  return LOGO.map((line, y) =>
+    Array.from(line, (char, x) => {
+      if (char === " ") return " ";
       const revealAt = (x * 1.2 + y * 3.5) * 1.4;
       const age = frame - revealAt;
-
-      if (age <= 0) { result += " "; continue; }
-
+      if (age <= 0) return " ";
       const t = Math.min(1, age / CHAR_FADE_FRAMES);
       const eased = 1 - (1 - t) * (1 - t);
       const brightness = Math.floor(lerp(50, 255, eased));
-      result += gray(brightness, char);
-    }
-    return result;
-  });
+      return gray(brightness, char);
+    }).join("")
+  );
 }
 
 const LOGO_PAD = 2;
@@ -131,6 +123,15 @@ const STAGGER_FRAMES = 0;
 const BASE_FADE_DELAY = 3;
 const MAX_STAGGER = BASE_FADE_DELAY + 5 * STAGGER_FRAMES; // base delay + max section index
 
+// ── Precompiled regex ──────────────────────────────────────────────────────
+
+const RE_SOURCE_HEADER = /^(git:|npm:)\S+\//;
+const RE_SKIP_PATHS = /^(index\.(ts|js)|src|dist|out|build|lib|bin)$/i;
+const RE_SKIP_INTERNAL = /\/(src|dist|out|build|lib|bin)\//;
+const RE_JS_TS_FILE = /\.(ts|js)$/;
+const RE_SKILL_FILE = /SKILL\.(ts|js)$/i;
+const RE_SOURCE_PREFIX = /^(npm:|git:)/;
+
 // ── Version fetch ──────────────────────────────────────────────────────────
 
 const NPM_REGISTRY_URL = "https://registry.npmjs.org/@mariozechner/pi-coding-agent/latest";
@@ -153,69 +154,74 @@ async function fetchLatestVersion(): Promise<string | undefined> {
 function compareVersions(a: string, b: string): number {
   const pa = a.replace(/^v/, "").split(".").map(Number);
   const pb = b.replace(/^v/, "").split(".").map(Number);
-  for (let i = 0; i < 3; i++) {
-    if ((pa[i] ?? 0) > (pb[i] ?? 0)) return 1;
-    if ((pa[i] ?? 0) < (pb[i] ?? 0)) return -1;
+  const diffs = Array.from({ length: 3 }, (_, i) => {
+    const va = pa[i] ?? 0;
+    const vb = pb[i] ?? 0;
+    if (va > vb) return 1;
+    if (va < vb) return -1;
+    return 0;
+  });
+  return diffs.find((d) => d !== 0) ?? 0;
+}
+
+function computeListingLines(
+  ref: ListingRef,
+  theme: Theme,
+  width: number,
+  logoW: number,
+): string[] {
+  const sectionsToRender: RenderSection[] = [];
+
+  if (ref.revealed) {
+    const accent = (t: string) => theme.fg("accent", t);
+    const latest = ref.latestVersion ?? VERSION;
+    const hasUpdate = compareVersions(latest, VERSION) > 0;
+    const latestStr = hasUpdate ? `Latest: ${accent("v" + latest)}` : `Latest: v${latest}`;
+    sectionsToRender.push({ name: "Version", items: [`Local: v${VERSION}`, latestStr] });
+
+    const byName = new Map(ref.sections.map((s) => [s.name, s]));
+    for (const key of SECTION_KEYS) {
+      const sec = byName.get(key);
+      if (sec && sec.items.length > 0) sectionsToRender.push(sec);
+    }
   }
-  return 0;
+
+  const lines = formatColumns(sectionsToRender, theme, width - logoW, ref);
+
+  const textAge = ref.revealed ? ref.frame - ref.revealedAt : 0;
+  const textDone = ref.revealed && textAge > RAMP_FRAMES + MAX_STAGGER;
+  const logoDone = ref.frame >= LOGO_SETTLE_FRAME;
+
+  if (textDone && logoDone) {
+    ref.settled = true;
+    ref.cachedLines = lines;
+    ref.cachedWidth = width;
+  }
+
+  return lines;
 }
 
 // ── Header renderer ─────────────────────────────────────────────────────────
 
 export function renderHeader(theme: Theme, ref: ListingRef, width: number): string[] {
-  const dim = (t: string) => theme.fg("dim", t);
-  const accent = (t: string) => theme.fg("accent", t);
-
   const logoLines = getShinedLogo(ref.frame);
-
-  // Use cached text lines if settled (no more animations)
   const logoW = LOGO_PAD + visibleWidth(LOGO[0]) + LOGO_GAP;
-  let listingLines: string[];
 
-  if (ref.settled && ref.cachedLines && ref.cachedWidth === width) {
-    listingLines = ref.cachedLines;
-  } else {
-    const sectionsToRender: RenderSection[] = [];
+  const listingLines =
+    ref.settled && ref.cachedLines && ref.cachedWidth === width
+      ? ref.cachedLines
+      : computeListingLines(ref, theme, width, logoW);
 
-    if (!ref.revealed) {
-      // Logo only — sections appear together on reveal
-    } else {
-      const latest = ref.latestVersion ?? VERSION;
-      const hasUpdate = compareVersions(latest, VERSION) > 0;
-      const latestStr = hasUpdate ? `Latest: ${accent("v" + latest)}` : `Latest: v${latest}`;
-      sectionsToRender.push({ name: "Version", items: [`Local: v${VERSION}`, latestStr] });
-
-      // Display sections in SECTION_KEYS order, skip empty
-      const byName = new Map(ref.sections.map(s => [s.name, s]));
-      for (const key of SECTION_KEYS) {
-        const sec = byName.get(key);
-        if (sec && sec.items.length > 0) sectionsToRender.push(sec);
-      }
-    }
-
-    listingLines = formatColumns(sectionsToRender, theme, width - logoW, ref);
-
-    // Cache once text animations are done
-    const textAge = ref.revealed ? ref.frame - ref.revealedAt : 0;
-    const textDone = ref.revealed && textAge > RAMP_FRAMES + MAX_STAGGER;
-    const logoDone = ref.frame >= LOGO_SETTLE_FRAME;
-
-    if (textDone && logoDone) {
-      ref.settled = true;
-      ref.cachedLines = listingLines;
-      ref.cachedWidth = width;
-    }
-  }
-
-  const result: string[] = ["", ""];
-
-  for (let i = -1; i < Math.max(logoLines.length, listingLines.length); i++) {
+  const maxMerge = Math.max(logoLines.length, listingLines.length);
+  const mergedLines = Array.from({ length: maxMerge + 1 }, (_, idx) => {
+    const i = idx - 1;
     const logoRow = logoLines[i] ?? "";
     const listRow = listingLines[i + 1] ?? "";
     const left = " ".repeat(LOGO_PAD) + pad(logoRow, LOGO[0].length);
     const line = `${left}${" ".repeat(LOGO_GAP)}${listRow}`;
-    result.push(truncateToWidth(line, width));
-  }
+    return truncateToWidth(line, width);
+  });
+  const result = ["", "", ...mergedLines];
 
   // Pi doesn't clear below the header when height shrinks,
   // so track the max height seen to prevent ghost lines.
@@ -244,18 +250,15 @@ function formatColumns(sections: RenderSection[], theme: Theme, maxW: number, re
 
   // RGB endpoints for fade ramps (truecolor only)
   const fadeStartRgb: [number, number, number] = [20, 20, 20];
-  let dimRgb: [number, number, number] | undefined;
-  let mutedRgb: [number, number, number] | undefined;
   const labelRamping = TRUECOLOR && ref.revealed && labelAge < RAMP_FRAMES + MAX_STAGGER;
   const itemRamping = TRUECOLOR && ref.revealed && itemAge < RAMP_FRAMES + MAX_STAGGER;
-  if (labelRamping || itemRamping) {
-    dimRgb = extractRgb(theme.fg("dim", " "));
-    mutedRgb = extractRgb(theme.fg("muted", " "));
-  }
+  const needsRgbExtraction = labelRamping || itemRamping;
+  const dimRgb = needsRgbExtraction ? extractRgb(theme.fg("dim", " ")) : undefined;
+  const mutedRgb = needsRgbExtraction ? extractRgb(theme.fg("muted", " ")) : undefined;
 
   const lines: string[] = [];
 
-  for (let si = 0; si < sections.length; si++) {
+  for (const si of Array(sections.length).keys()) {
     const sec = sections[si];
     if (sec.items.length === 0) continue;
 
@@ -275,7 +278,7 @@ function formatColumns(sections: RenderSection[], theme: Theme, maxW: number, re
 
     // Style prefix (npm:/git:) dimmer than the name
     const styleItem = (raw: string): string => {
-      const prefixMatch = raw.match(/^(npm:|git:)/);
+      const prefixMatch = raw.match(RE_SOURCE_PREFIX);
       if (prefixMatch) {
         const pfx = prefixMatch[1];
         const name = raw.slice(pfx.length);
@@ -284,26 +287,24 @@ function formatColumns(sections: RenderSection[], theme: Theme, maxW: number, re
       return wrapItems(raw);
     };
 
-    let currentLine = "";
-    let currentStyled = "";
-    let firstLine = true;
+    const wl = { currentLine: "", currentStyled: "", firstLine: true };
 
     for (const item of sec.items) {
       const itemW = visibleWidth(item);
-      const currentW = visibleWidth(currentLine);
+      const currentW = visibleWidth(wl.currentLine);
 
-      if (currentLine && currentW + 2 + itemW > availableW) {
-        lines.push(firstLine ? `${paddedHeader} ${currentStyled}` : " ".repeat(headerW + 1) + currentStyled);
-        currentLine = item;
-        currentStyled = styleItem(item);
-        firstLine = false;
+      if (wl.currentLine && currentW + 2 + itemW > availableW) {
+        lines.push(wl.firstLine ? `${paddedHeader} ${wl.currentStyled}` : " ".repeat(headerW + 1) + wl.currentStyled);
+        wl.currentLine = item;
+        wl.currentStyled = styleItem(item);
+        wl.firstLine = false;
       } else {
-        currentLine = currentLine ? currentLine + "  " + item : item;
-        currentStyled = currentStyled ? currentStyled + "  " + styleItem(item) : styleItem(item);
+        wl.currentLine = wl.currentLine ? wl.currentLine + "  " + item : item;
+        wl.currentStyled = wl.currentStyled ? wl.currentStyled + "  " + styleItem(item) : styleItem(item);
       }
     }
-    if (currentLine) {
-      lines.push(firstLine ? `${paddedHeader} ${currentStyled}` : " ".repeat(headerW + 1) + currentStyled);
+    if (wl.currentLine) {
+      lines.push(wl.firstLine ? `${paddedHeader} ${wl.currentStyled}` : " ".repeat(headerW + 1) + wl.currentStyled);
     }
 
     if (sec.name === "Version") {
@@ -349,22 +350,21 @@ function parseSectionText(plain: string): ParsedSection | undefined {
 
   const names: string[] = [];
   const lines = plain.split("\n");
-  let currentSource = "";
-  let sourceIndent = 0;
+  const src = { current: "", indent: 0 };
 
   for (const line of lines) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     if (trimmed.startsWith("[")) continue;
-    if (/^(user|project|path)$/.test(trimmed)) { currentSource = ""; sourceIndent = 0; continue; }
+    if (/^(user|project|path)$/.test(trimmed)) { src.current = ""; src.indent = 0; continue; }
 
     const indent = line.length - line.trimStart().length;
 
     // Track package source headers (e.g. "git:github.com/...", "npm:@foo/bar")
     // Extract name from the header itself + let children inherit the prefix
-    if (/^(git:|npm:)\S+\//.test(trimmed)) {
-      currentSource = trimmed.startsWith("git:") ? "git:" : "npm:";
-      sourceIndent = indent;
+    if (RE_SOURCE_HEADER.test(trimmed)) {
+      src.current = trimmed.startsWith("git:") ? "git:" : "npm:";
+      src.indent = indent;
       // Extract name from source header (e.g. "npm:@foo/pi-tavily-tools" → "npm:pi-tavily-tools")
       const showSource = sectionName === "Extensions" || sectionName === "Skills";
       const name = extractName(trimmed, sectionName);
@@ -373,29 +373,29 @@ function parseSectionText(plain: string): ParsedSection | undefined {
     }
 
     // Reset source prefix when indent returns to source level or shallower
-    if (currentSource && indent <= sourceIndent) {
-      currentSource = "";
-      sourceIndent = 0;
+    if (src.current && indent <= src.indent) {
+      src.current = "";
+      src.indent = 0;
     }
 
-    if (/^(index\.(ts|js)|src|dist|out|build|lib|bin)$/i.test(trimmed)) continue;
+    if (RE_SKIP_PATHS.test(trimmed)) continue;
     // Skip resolved file paths only under source headers (e.g. "dist/index.js" under npm:)
-    if (currentSource) {
-      if (/\/(src|dist|out|build|lib|bin)\//.test(trimmed)) continue;
-      if (/\.(ts|js)$/.test(trimmed) && trimmed.includes("/") && !/SKILL\.(ts|js)$/i.test(trimmed)) continue;
+    if (src.current) {
+      if (RE_SKIP_INTERNAL.test(trimmed)) continue;
+      if (RE_JS_TS_FILE.test(trimmed) && trimmed.includes("/") && !RE_SKILL_FILE.test(trimmed)) continue;
     }
 
     const name = extractName(trimmed, sectionName);
     // Prompts/Context don't need source prefix — only Extensions/Skills
     const showSource = sectionName === "Extensions" || sectionName === "Skills";
-    if (name) names.push(showSource && currentSource ? currentSource + name : name);
+    if (name) names.push(showSource && src.current ? src.current + name : name);
   }
 
   // Deduplicate by bare name (without prefix) — prefer prefixed version
   const seen = new Map<string, string>();
   for (const n of names) {
     if (/^(index|dist|src|out|lib|bin)$/i.test(n)) continue;
-    const bare = n.replace(/^(npm:|git:)/, "");
+    const bare = n.replace(RE_SOURCE_PREFIX, "");
     if (!seen.has(bare) || n.includes(":")) seen.set(bare, n);
   }
   return { name: sectionName, items: [...seen.values()] };

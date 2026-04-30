@@ -16,10 +16,10 @@ const TIME_COL = 9;
 // ── Instance tracking ──────────────────────────────────────────────
 
 const instanceIndex = new WeakMap<object, number>();
-let instanceCount = 0;
+const instanceCount = { value: 0 };
 
 export function resetInstanceCount(): void {
-  instanceCount = 0;
+  instanceCount.value = 0;
 }
 
 function formatTime(ms: number): string {
@@ -36,11 +36,11 @@ export function patchUserMessage(
   getTheme: () => Theme,
   responseTimes: number[],
 ): void {
-  let lastBg = "";
+  const lastBg = { value: "" };
   const theme = getTheme();
   const p = resolvePalette(theme);
-  lastBg = p.panelBg;
-  setThemeBg(theme, "userMessageBg", lastBg);
+  lastBg.value = p.panelBg;
+  setThemeBg(theme, "userMessageBg", lastBg.value);
 
   const g = globalThis as any;
   const importPromise: Promise<any> =
@@ -66,7 +66,7 @@ export function patchUserMessage(
           child._piPanePatched = true;
         }
         if (!instanceIndex.has(this)) {
-          instanceIndex.set(this, instanceCount++);
+          instanceIndex.set(this, instanceCount.value++);
         }
         return origAddChild.call(this, child);
       };
@@ -78,7 +78,7 @@ export function patchUserMessage(
         const currentTheme = getTheme();
         const p = resolvePalette(currentTheme);
         const bg = p.panelBg;
-        if (bg !== lastBg) { setThemeBg(currentTheme, "userMessageBg", bg); lastBg = bg; }
+        if (bg !== lastBg.value) { setThemeBg(currentTheme, "userMessageBg", bg); lastBg.value = bg; }
 
         const idx = instanceIndex.get(this);
         const elapsed = (idx !== undefined && idx < responseTimes.length) ? responseTimes[idx] : 0;
@@ -101,18 +101,18 @@ export function patchUserMessage(
 
         const firstContent = 1;
 
-        for (let i = 0; i < lines.length; i++) {
-          let line = lines[i]!;
+        for (const i of Array(lines.length).keys()) {
+          const originalLine = lines[i]!;
 
           // Extract any OSC133 B/C markers (shell zone end/final). v0.67 placed
           // these at the head of the last line; older versions at the tail.
           // Strip them from the content line; re-emit after the time column.
-          const oscMatches = line.match(OSC133_RE);
+          const oscMatches = originalLine.match(OSC133_RE);
           const oscSuffix = oscMatches ? oscMatches.join("") : "";
-          if (oscSuffix) line = line.replace(OSC133_RE, "");
+          const cleanLine = oscSuffix ? originalLine.replace(OSC133_RE, "") : originalLine;
 
           const col = i === firstContent && hasTime ? timeContent : emptyTimeCol;
-          lines[i] = line + col + RESET + oscSuffix;
+          lines[i] = cleanLine + col + RESET + oscSuffix;
         }
 
         return idx === 0 ? ["", ...lines] : lines;

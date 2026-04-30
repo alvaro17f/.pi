@@ -35,17 +35,14 @@ const isTextPart = (part: unknown): part is { type: "text"; text: string } =>
   Boolean(part && typeof part === "object" && "type" in part && part.type === "text" && "text" in part);
 
 const extractLastAssistantText = (messages: Array<{ role?: string; content?: unknown }>): string | null => {
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const message = messages[i];
-    if (message?.role !== "assistant") continue;
+  const lastAssistant = messages.filter((m) => m?.role === "assistant").at(-1);
+  if (!lastAssistant) return null;
 
-    const content = message.content;
-    if (typeof content === "string") return content.trim() || null;
-    if (Array.isArray(content)) {
-      const text = content.filter(isTextPart).map((p) => p.text).join("\n").trim();
-      return text || null;
-    }
-    return null;
+  const content = lastAssistant.content;
+  if (typeof content === "string") return content.trim() || null;
+  if (Array.isArray(content)) {
+    const text = content.filter(isTextPart).map((p) => p.text).join("\n").trim();
+    return text || null;
   }
   return null;
 };
