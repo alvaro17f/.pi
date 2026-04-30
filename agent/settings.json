@@ -16,7 +16,6 @@
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
-    "npm:@rexkit/pi-lazygit",
     "npm:@sting8k/pi-vcc",
     "npm:@tintinweb/pi-subagents",
     "npm:context-mode",
