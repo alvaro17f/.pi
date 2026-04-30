@@ -10,9 +10,9 @@ User extensions, skills, and settings for [pi](https://github.com/badlogic/pi-mo
 | [custom-footer](agent/extensions/custom-footer/) | TUI footer: model, token stats, context %, elapsed, CWD, git branch, TPS, query time | — |
 | [notifications](agent/extensions/notifications/) | Desktop notifications via OSC 777 when agent finishes. Shows response snippet as body. | `/notifications [on\|off\|status]` |
 | [ollama](agent/extensions/ollama/) | Local Ollama + Ollama Cloud provider + `ollama_web_search` / `ollama_web_fetch` tools | `/ollama [status\|sync]` |
-| [auto-updater](agent/extensions/auto-updater/) | Auto-pull git updates on startup. Fastest update path. | — |
+| [ui](agent/extensions/ui/) | Pi Pane — custom TUI layout with pane editor, message patches, startup header | — |
+| [pi-rtk-optimizer](agent/extensions/pi-rtk-optimizer/) | RTK source filtering and output compaction (~90% context reduction) | — |
 | [pi-tool-display](agent/extensions/pi-tool-display/) | Enhanced tool output display: diffs, previews, collapsible output | — |
-| [safe-guard](agent/extensions/safe-guard/) | Blocks/confirms dangerous bash commands and writes to sensitive paths | `/safe [on\|off\|status]` |
 | [extension-settings](agent/utils/extension-settings/) | Shared utility module for persisting extension state in `settings.json` | — |
 
 ## Packages
@@ -21,7 +21,6 @@ Installed from [`settings.json`](agent/settings.json) `packages` array:
 
 | Package | Source |
 |---------|--------|
-| `pi-pane` | git:github.com/visua1hue/pi-pane |
 | `@ahkohd/oyo` | npm |
 | `@ahkohd/pi-oyo` | npm |
 | `@getpaseo/cli` | npm |
@@ -29,10 +28,12 @@ Installed from [`settings.json`](agent/settings.json) `packages` array:
 | `@lpirito/pi-diffloop` | npm |
 | `@sting8k/pi-vcc` | npm |
 | `@tintinweb/pi-subagents` | npm |
-| `@tomooshi/condensed-milk-pi` | npm |
+| `context-mode` | npm |
+| `pi-ask-mode` | npm |
 | `pi-btw` | npm |
 | `pi-image-preview` | npm |
-| `pi-schedule-prompt` | npm |
+| `pi-mcp-adapter` | npm |
+| `pi-rtk-optimizer` | npm |
 | `pi-secret-guard` | npm |
 | `pi-tool-display` | npm |
 
@@ -52,8 +53,8 @@ Installed from [`settings.json`](agent/settings.json) `packages` array:
 
 | Key | Type | Default | Current | Description |
 |-----|------|---------|---------|-------------|
-| `defaultProvider` | `string` | — | `minimax` | Default model provider |
-| `defaultModel` | `string` | — | `MiniMax-M2.7` | Default model ID |
+| `defaultProvider` | `string` | — | `ollama-cloud` | Default model provider |
+| `defaultModel` | `string` | — | `deepseek-v4-pro` | Default model ID |
 | `theme` | `string` | — | `catppuccin-mocha` | TUI theme |
 | `quietStartup` | `boolean` | `false` | `false` | Suppress startup messages |
 | `hideThinkingBlock` | `boolean` | `false` | `false` | Hide thinking blocks in output |
@@ -67,5 +68,4 @@ Persisted in [`settings.json`](agent/settings.json) under `extensionSettings`:
 | Key | Type | Default | Current | Description |
 |-----|------|---------|---------|-------------|
 | `caveman` | `"off" \| "lite" \| "full" \| "ultra"` | `"off"` | `full` | Caveman compression level |
-| `safeGuard` | `boolean` | `true` | `false` | Safe-guard enabled |
 | `notifications` | `boolean` | `true` | `true` | Desktop notifications enabled |
