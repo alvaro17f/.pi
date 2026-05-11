@@ -14,16 +14,14 @@
     "npm:@ahkohd/oyo",
     "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
-    "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
     "npm:@sting8k/pi-vcc",
-    "npm:@tintinweb/pi-subagents",
     "npm:context-mode",
     "npm:pi-ask-mode",
-    "npm:pi-btw",
     "npm:pi-mcp-adapter",
     "npm:pi-rtk-optimizer",
     "npm:pi-secret-guard",
+    "npm:pi-subagents",
     "npm:pi-tool-display"
   ],
   "extensionSettings": {
