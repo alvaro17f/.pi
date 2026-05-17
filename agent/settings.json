@@ -1,10 +1,10 @@
 {
-  "lastChangelogVersion": "0.74.0",
+  "lastChangelogVersion": "0.75.0",
   "defaultProvider": "ollama-cloud",
-  "defaultModel": "deepseek-v4-pro",
+  "defaultModel": "glm-5.1",
   "theme": "catppuccin-mocha",
   "npmCommand": [
-    "bun"
+    "npm"
   ],
   "enableInstallTelemetry": false,
   "quietStartup": false,
@@ -14,8 +14,6 @@
     "showTerminalProgress": true
   },
   "packages": [
-    "npm:@ahkohd/oyo",
-    "npm:@ahkohd/pi-oyo",
     "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
