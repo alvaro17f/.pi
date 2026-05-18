@@ -2,6 +2,13 @@
 
 User extensions, skills, and settings for [pi](https://github.com/badlogic/pi-mono).
 
+## Installation
+
+```sh
+npm i -g @earendil-works/pi-coding-agent
+npm i -g @getpaseo/cli
+```
+
 ## Extensions
 
 | Extension | Description | Commands |

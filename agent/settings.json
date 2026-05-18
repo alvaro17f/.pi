@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.75.0",
+  "lastChangelogVersion": "0.75.1",
   "defaultProvider": "ollama-cloud",
   "defaultModel": "glm-5.1",
   "theme": "catppuccin-mocha",
@@ -14,7 +14,6 @@
     "showTerminalProgress": true
   },
   "packages": [
-    "npm:@getpaseo/cli",
     "npm:@ifi/pi-plan",
     "npm:@lpirito/pi-diffloop",
     "npm:@sting8k/pi-vcc",
